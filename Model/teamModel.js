@@ -78,7 +78,7 @@ const Team = sequelize.define('Team', {
         allowNull: true,
     },
     BA_Id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
             model: BrandAmbassador,
