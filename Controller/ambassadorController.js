@@ -38,7 +38,7 @@ exports.GetAmbassadorById = catchAsyncError(async (req, res, next) => {
     });
 });
 
-exports.GetAllAmbassadorRegistration = catchAsyncError(async (req, res, next) => {
+exports.GetAllBARegistration = catchAsyncError(async (req, res, next) => {
     console.log("GetAllAmbassadorRegistration");
 
     res.status(200).json({
