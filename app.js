@@ -9,7 +9,7 @@ const cors = require("cors");
 //     allowedHeaders: ["Content-Type", "Authorization"],
 // }));
 
-app.use(cors({ origin: "https://ba.devday25.com/" }));
+app.use(cors({ origin: "https://ba.devday25.com/*" }));
 
 app.use(express.json());
 
