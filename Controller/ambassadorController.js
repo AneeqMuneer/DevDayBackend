@@ -7,6 +7,8 @@ const { Op } = require("sequelize");
 const AmbassadorModel = require("../Model/ambassadorModel");
 const TeamModel = require("../Model/teamModel");
 
+const { SendEmail } = require("../Utils/ambassadorUtils");
+
 exports.Login = catchAsyncError(async (req, res, next) => {
     const { Email, Password } = req.body;
 
@@ -23,6 +25,11 @@ exports.Login = catchAsyncError(async (req, res, next) => {
     }
 
     const isPasswordMatched = await Ambassador.comparePassword(Password);
+    const isApproved = Ambassador.Approval;
+
+    if (!isApproved) {
+        return next(new ErrorHandler("Your account is not approved yet.", 401));
+    }
 
     if (!isPasswordMatched) {
         return next(new ErrorHandler("Invalid Email or Password.", 401));
@@ -36,9 +43,9 @@ exports.Login = catchAsyncError(async (req, res, next) => {
 });
 
 exports.SignUp = catchAsyncError(async (req, res, next) => {
-    const { Name, Contact, Email, CNIC, Institution, Password, Instagram_Handle } = req.body;
+    const { Name, Contact, Email, CNIC, Institution, Instagram_Handle } = req.body;
 
-    if (!Name || !Email || !Contact || !CNIC || !Institution || !Password) {
+    if (!Name || !Email || !Contact || !CNIC || !Institution) {
         return next(new ErrorHandler("Please fill the remaining fields.", 400));
     }
 
@@ -69,9 +76,10 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
         Email,
         CNIC,
         Institution,
-        Password,
         Instagram_Handle
     });
+
+    await SendEmail(ambassador.Email , ambassador.Name);
 
     res.status(200).json({
         success: true,
@@ -211,5 +219,36 @@ exports.UpdatePassword = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
         success: true,
         message: "Password updated successfully"
+    });
+});
+
+exports.ApproveBA = catchAsyncError(async (req , res , next) => {
+    const { id } = req.body;
+
+    if (!id) {
+        return next(new ErrorHandler("Please provide an ambassador ID", 400));
+    }
+
+    const ambassador = await AmbassadorModel.findByPk(id);
+
+    if (!ambassador) {
+        return next(new ErrorHandler("Ambassador not found", 404));
+    }
+
+    if (ambassador.Approval) {
+        res.status(200).json({
+            success: true,
+            message: "Ambassador is already approved"
+        });
+    }
+
+    ambassador.Approval = true;
+    await ambassador.save();
+
+    await SendEmail(ambassador.Email , ambassador.Name);
+
+    res.status(200).json({
+        success: true,
+        message: "Ambassador approved successfully"
     });
 });
