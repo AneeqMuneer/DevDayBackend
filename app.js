@@ -3,13 +3,13 @@ const app = express();
 const middleware = require("./Middleware/error");
 const cors = require("cors");
 
-app.use(cors({
-    origin: "https://ba.devday25.com/",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-}));
+// app.use(cors({
+//     origin: "https://ba.devday25.com/",
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+// }));
 
-app.options('*', cors());
+app.use(cors({ origin: "https://ba.devday25.com/" }));
 
 app.use(express.json());
 
