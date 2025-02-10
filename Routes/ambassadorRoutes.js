@@ -1,9 +1,10 @@
 const express = require("express");
 const { Login , SignUp , GetAllAmbassador , GetAllBARegistration , GetAmbassadorById , GetAmbassadorByCode , Leaderboard , ChangeOldPassword , UpdatePassword , ApproveBA } = require("../Controller/ambassadorController");
 const { VerifyAmbassador } = require("../Middleware/ambassadorAuth");
+const upload = require("../Middleware/multer.js");
 const router = express.Router();
 
-router.route("/signup").post(SignUp);
+router.route("/signup").post(upload.single('ProfilePhoto') , SignUp);
 router.route("/login").post(Login);
 router.route("/getallambassador").get(VerifyAmbassador , GetAllAmbassador);
 router.route("/getambassadorbycode").get(VerifyAmbassador , GetAmbassadorByCode);

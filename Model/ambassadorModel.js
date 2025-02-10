@@ -22,6 +22,7 @@ const BrandAmbassador = sequelize.define('BrandAmbassador', {
     Contact: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: true,
         validate: {
             is: {
                 args: [/\d{11}$/],
@@ -54,11 +55,15 @@ const BrandAmbassador = sequelize.define('BrandAmbassador', {
     },
     Password: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     Approval: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
+    },
+    ProfilePhoto: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
     Instagram_Handle: {
         type: DataTypes.STRING,

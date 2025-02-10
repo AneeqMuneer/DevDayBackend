@@ -2,6 +2,7 @@ const ErrorHandler = require("../Utils/errorHandler");
 const catchAsyncError = require("../Middleware/asyncError");
 const { createCode } = require("../Utils/ambassadorUtils");
 const TokenCreation = require("../Utils/tokenCreation");
+const cloudinary = require("../config/cloudinary.js");
 const { Op } = require("sequelize");
 
 const AmbassadorModel = require("../Model/ambassadorModel");
@@ -51,10 +52,7 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
 
     const similarAmbassador = await AmbassadorModel.findAll({
         where: {
-            [Op.or]: [
-                { Email },
-                { CNIC }
-            ]
+            [Op.or]: [{ Email }, { CNIC }, { Contact }]
         }
     });
 
@@ -62,12 +60,35 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Ambassador already exists.", 400));
     }
 
+    let Code;
     do {
-        var Code = createCode(Name, Institution);
-        var anotherAmbassador = await AmbassadorModel.findAll({
-            where: { Code }
-        });
+        Code = createCode(Name, Institution);
+        var anotherAmbassador = await AmbassadorModel.findAll({ where: { Code } });
     } while (anotherAmbassador.length > 0);
+
+    let profilePhotoUrl = null;
+    if (req.file) {
+        try {
+            const uploadResult = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { resource_type: 'image', folder: 'ambassadors' },
+                    (error, result) => {
+                        if (error) {
+                            reject(new ErrorHandler('Error uploading image to Cloudinary', 500));
+                        } else {
+                            resolve(result.secure_url);
+                        }
+                    }
+                );
+                stream.end(req.file.buffer);
+            });
+
+            profilePhotoUrl = uploadResult;
+
+        } catch (err) {
+            return next(err);
+        }
+    }
 
     const ambassador = await AmbassadorModel.create({
         Code,
@@ -76,14 +97,15 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
         Email,
         CNIC,
         Institution,
-        Instagram_Handle
+        Instagram_Handle,
+        ProfilePhoto: profilePhotoUrl
     });
 
-    await SendEmail(ambassador.Email , ambassador.Name);
+    await SendEmail(ambassador.Email, ambassador.Name);
 
     res.status(200).json({
         success: true,
-        message: "Ambassador signUp successfull",
+        message: "Ambassador sign-up successful",
         ambassador
     });
 });
@@ -222,7 +244,7 @@ exports.UpdatePassword = catchAsyncError(async (req, res, next) => {
     });
 });
 
-exports.ApproveBA = catchAsyncError(async (req , res , next) => {
+exports.ApproveBA = catchAsyncError(async (req, res, next) => {
     const { id } = req.body;
 
     if (!id) {
@@ -245,7 +267,7 @@ exports.ApproveBA = catchAsyncError(async (req , res , next) => {
     ambassador.Approval = true;
     await ambassador.save();
 
-    await SendEmail(ambassador.Email , ambassador.Name);
+    await SendEmail(ambassador.Email, ambassador.Name);
 
     res.status(200).json({
         success: true,
