@@ -169,3 +169,47 @@ exports.Leaderboard = catchAsyncError(async (req, res, next) => {
         teams
     });
 });
+
+exports.ChangeOldPassword = catchAsyncError(async (req, res, next) => {
+    const { id, OldPassword } = req.body;
+
+    if (!OldPassword || !id) {
+        return next(new ErrorHandler("Please provide the required details", 400));
+    }
+
+    const ambassador = await AmbassadorModel.findByPk(id);
+
+    if (!ambassador) {
+        return next(new ErrorHandler("Ambassador not found", 404));
+    }
+
+    const isPasswordMatched = await ambassador.comparePassword(OldPassword);
+
+    if (!isPasswordMatched) {
+        return next(new ErrorHandler("Old Password is incorrect", 400));
+    }
+
+    req.body.ambassador = ambassador;
+
+    return next();
+});
+
+exports.UpdatePassword = catchAsyncError(async (req, res, next) => {
+    const { ambassador, NewPassword } = req.body;
+
+    if (!ambassador) {
+        return next(new ErrorHandler("Ambassador not found", 400));
+    }
+
+    if (!NewPassword) {
+        return next(new ErrorHandler("Please provide a new password", 400));
+    }
+
+    ambassador.Password = NewPassword;
+    await ambassador.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Password updated successfully"
+    });
+});
