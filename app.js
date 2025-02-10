@@ -4,7 +4,7 @@ const middleware = require("./Middleware/error");
 const cors = require("cors");
 
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: "https://ba.devday25.com/",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
 }));
