@@ -8,7 +8,7 @@ const Team = sequelize.define('Team', {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
     },
-    CompetitionName: {
+    Competition_Name: {
         type: DataTypes.STRING,
         allowNull: false,
     },
@@ -16,60 +16,60 @@ const Team = sequelize.define('Team', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    Leader_name: {
+    L_Name: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    Leader_email: {
+    L_Email: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
             isEmail: true,
         },
     },
-    Leader_whatsapp_number: {
+    L_Contact: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    Leader_cnic: {
+    L_CNIC: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    mem1_name: {
+    M1_Name: {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    mem1_email: {
+    M1_Email: {
         type: DataTypes.STRING,
         allowNull: true,
         validate: {
             isEmail: true,
         },
     },
-    mem1_whatsapp_number: {
+    M1_Contact: {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    mem1_cnic: {
+    M1_CNIC: {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    mem2_name: {
+    M2_Name: {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    mem2_email: {
+    M2_Email: {
         type: DataTypes.STRING,
         allowNull: true,
         validate: {
             isEmail: true,
         },
     },
-    mem2_whatsapp_number: {
+    M2_Contact: {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    mem2_cnic: {
+    M2_CNIC: {
         type: DataTypes.STRING,
         allowNull: true,
     },

@@ -1,9 +1,11 @@
 const ErrorHandler = require("../Utils/errorHandler");
 const catchAsyncError = require("../Middleware/asyncError");
-const AmbassadorModel = require("../Model/ambassadorModel");
 const { createCode } = require("../Utils/ambassadorUtils");
 const TokenCreation = require("../Utils/tokenCreation");
 const { Op } = require("sequelize");
+
+const AmbassadorModel = require("../Model/ambassadorModel");
+const TeamModel = require("../Model/teamModel");
 
 exports.Login = catchAsyncError(async (req, res, next) => {
     const { Email, Password } = req.body;
@@ -79,37 +81,91 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
 });
 
 exports.GetAllAmbassador = catchAsyncError(async (req, res, next) => {
-    console.log("GetAllAmbassador");
+    const ambassadors = await AmbassadorModel.findAll({
+        attributes: { exclude: ['Password', 'createdAt', 'updatedAt'] } // Exclude password from the response
+    });
 
     res.status(200).json({
         success: true,
-        message: "GetAllAmbassador"
+        count: ambassadors.length,
+        ambassadors
     });
 });
 
 exports.GetAmbassadorById = catchAsyncError(async (req, res, next) => {
-    console.log("GetAmbassadorById");
+    const { id } = req.params;
+
+    if (!id) {
+        return next(new ErrorHandler("Please provide an ambassador ID", 400));
+    }
+
+    const ambassador = await AmbassadorModel.findByPk(id, {
+        attributes: { exclude: ['Password', 'createdAt', 'updatedAt'] }
+    });
+
+    if (!ambassador) {
+        return next(new ErrorHandler("Ambassador not found", 404));
+    }
 
     res.status(200).json({
         success: true,
-        message: "GetAmbassadorById"
+        ambassador
+    });
+});
+
+exports.GetAmbassadorByCode = catchAsyncError(async (req, res, next) => {
+    const { code } = req.body;
+
+    if (!code) {
+        return next(new ErrorHandler("Please provide a code", 400));
+    }
+
+    const ambassador = await AmbassadorModel.findOne({
+        where: {
+            Code: code
+        },
+        attributes: { exclude: ['Password'] }
+    });
+
+    if (!ambassador) {
+        return next(new ErrorHandler("Ambassador not found", 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        ambassador
     });
 });
 
 exports.GetAllBARegistration = catchAsyncError(async (req, res, next) => {
-    console.log("GetAllAmbassadorRegistration");
+    const { code } = req.query;
+
+    if (!code) {
+        return next(new ErrorHandler("Please provide a Code", 400));
+    }
+
+    const ambassador = await AmbassadorModel.findOne({ where: { Code: code } });
+
+    if (!ambassador) {
+        return next(new ErrorHandler("Ambassador not found", 404));
+    }
+
+    const teams = await TeamModel.findAll({ where: { BA_Id: ambassador.id } });
 
     res.status(200).json({
         success: true,
-        message: "GetAllAmbassadorRegistration"
+        teams
     });
 });
 
 exports.Leaderboard = catchAsyncError(async (req, res, next) => {
-    console.log("Leaderboard");
+    const teams = await TeamModel.findAll({
+        attributes: { exclude: ['Password', 'createdAt', 'updatedAt'] }
+    });
 
     res.status(200).json({
         success: true,
-        message: "Leaderboard"
+        count: teams.length,
+        teams
     });
 });
