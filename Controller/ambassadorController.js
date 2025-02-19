@@ -1,6 +1,5 @@
 const ErrorHandler = require("../Utils/errorHandler");
 const catchAsyncError = require("../Middleware/asyncError");
-const { createCode } = require("../Utils/ambassadorUtils");
 const TokenCreation = require("../Utils/tokenCreation");
 const cloudinary = require("../config/cloudinary.js");
 const { Op } = require("sequelize");
@@ -8,7 +7,7 @@ const { Op } = require("sequelize");
 const AmbassadorModel = require("../Model/ambassadorModel");
 const TeamModel = require("../Model/teamModel");
 
-const { SendEmail } = require("../Utils/ambassadorUtils");
+const { SendEmail , CreateCode , GenerateRandomPassword } = require("../Utils/ambassadorUtils");
 
 exports.Login = catchAsyncError(async (req, res, next) => {
     const { Email, Password } = req.body;
@@ -62,7 +61,7 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
 
     let Code;
     do {
-        Code = createCode(Name, Institution);
+        Code = CreateCode(Name, Institution);
         var anotherAmbassador = await AmbassadorModel.findAll({ where: { Code } });
     } while (anotherAmbassador.length > 0);
 
@@ -262,15 +261,16 @@ exports.ApproveBA = catchAsyncError(async (req, res, next) => {
             success: true,
             message: "Ambassador is already approved"
         });
+    } else {
+        ambassador.Approval = true;
+        await ambassador.save();
+    
+        await SendEmail(ambassador.Email, ambassador.Name);
+    
+        res.status(200).json({
+            success: true,
+            message: "Ambassador approved successfully"
+        });
     }
 
-    ambassador.Approval = true;
-    await ambassador.save();
-
-    await SendEmail(ambassador.Email, ambassador.Name);
-
-    res.status(200).json({
-        success: true,
-        message: "Ambassador approved successfully"
-    });
 });

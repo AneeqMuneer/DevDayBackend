@@ -12,6 +12,10 @@ const Team = sequelize.define('Team', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    Institute_Name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
     Team_Name: {
         type: DataTypes.STRING,
         allowNull: false,

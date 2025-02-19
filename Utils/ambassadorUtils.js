@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-exports.createCode = (name, institution) => {
+exports.CreateCode = (name, institution) => {
     const getInitials = (str) => {
         const words = str.trim().split(' ');
         if (words.length > 1) {
@@ -102,3 +102,12 @@ exports.SendEmail = async (email, name) => {
         throw error;
     }
 };
+
+exports.GenerateRandomPassword = async (length = 8) => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+}
