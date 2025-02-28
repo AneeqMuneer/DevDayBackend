@@ -16,14 +16,14 @@ exports.RegisterFyp = catchAsyncError(async (req, res, next) => {
         const similarTeam = await FypModel.findAll({
             where: {
             teamMembers: {
-                [Op.contains]: [member.Email]
+                [Op.contains]: [member.email]
             },
             projectName
             }
         });
 
         if (similarTeam.length > 0) {
-            return next(new ErrorHandler(`Member ${member.Email} is already registered for the FYP.`, 400));
+            return next(new ErrorHandler(`Member ${member.email} is already registered for the FYP.`, 400));
         }
     }
 
@@ -35,7 +35,7 @@ exports.RegisterFyp = catchAsyncError(async (req, res, next) => {
         document
     });
 
-    SendFypRegisterMail(fyp, res);
+    SendFypRegisterMail(teamMembers[0].email, teamMembers[0].name);
     
     res.status(200).json({
         success: true,

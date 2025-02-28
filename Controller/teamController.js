@@ -54,7 +54,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         BA_Id
     });
 
-    SendTeamRegisterMail(team, res);
+    SendTeamRegisterMail(L_Email, L_Name);
 
     res.status(200).json({
         success: true,
