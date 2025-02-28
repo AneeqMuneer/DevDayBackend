@@ -16,7 +16,7 @@ const FYP = sequelize.define('FYP', {
         allowNull: false,
     },
     teamMembers: {
-        type: DataTypes.ARRAY(DataTypes.JSON),
+        type: DataTypes.JSONB,
         allowNull: false,
     },
     title: {
