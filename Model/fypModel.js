@@ -7,7 +7,26 @@ const FYP = sequelize.define('FYP', {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
     },
-    
+    projectName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    university: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    teamMembers: {
+        type: DataTypes.ARRAY(DataTypes.JSON),
+        allowNull: false,
+    },
+    title: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    document: {
+        type: DataTypes.BLOB,
+        allowNull: false,
+    }
 }, {
     tableName: 'FYPs',
     timestamps: true,
