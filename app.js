@@ -14,8 +14,12 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 const ambassadorRoutes = require("./Routes/ambassadorRoutes");
+const teamRoutes = require("./Routes/teamRoutes");
+// const competitionRoutes = require("./Routes/competitionRoutes");
 
 app.use("/BrandAmbassador", ambassadorRoutes);
+app.use("/Team", teamRoutes);
+// app.use("/Competition", competitionRoutes);
 
 app.use(middleware)
 module.exports = app;
