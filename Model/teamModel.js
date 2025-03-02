@@ -1,24 +1,26 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../Data/db.js');
-const BrandAmbassador = require('./ambassadorModel.js');
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../Data/db.js");
+const BrandAmbassador = require("./ambassadorModel.js");
 
-const Team = sequelize.define('Team', {
+const Team = sequelize.define(
+  "Team",
+  {
     id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
     Competition_Id: {
-        type: DataTypes.STRING,
-        allowNull: false,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     Institute_Name: {
-        type: DataTypes.STRING,
-        allowNull: false,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     Team_Name: {
-        type: DataTypes.STRING,
-        allowNull: false,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     L_Name: {
         type: DataTypes.STRING,
@@ -39,61 +41,30 @@ const Team = sequelize.define('Team', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    M1_Name: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    M1_Email: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-            isEmail: true,
-        },
-    },
-    M1_Contact: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    M1_CNIC: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    M2_Name: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    M2_Email: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-            isEmail: true,
-        },
-    },
-    M2_Contact: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    M2_CNIC: {
-        type: DataTypes.STRING,
-        allowNull: true,
+    Members: {
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: [],
     },
     BA_Id: {
-        type: DataTypes.UUID,
-        allowNull: false,
-        references: {
-            model: BrandAmbassador,
-            key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
-    },      
-    Payment_Verification_Status: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: BrandAmbassador,
+        key: "id",
+      },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
-}, {
-    tableName: 'Teams',
+    Payment_Verification_Status: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+  },
+  {
+    tableName: "Teams",
     timestamps: true,
-});
+  }
+);
 
 module.exports = Team;

@@ -5,7 +5,7 @@ const cloudinary = require("../config/cloudinary.js");
 const { Op } = require("sequelize");
 
 const AmbassadorModel = require("../Model/ambassadorModel");
-const TeamModel = require("../Model/teamModel");
+const TeamModel = require("../Model/teamModel");9
 
 const { SendEmail , CreateCode , GenerateRandomPassword } = require("../Utils/ambassadorUtils");
 

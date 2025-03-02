@@ -47,43 +47,10 @@ const FYP = sequelize.define('FYP', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    M1_Name: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    M1_Email: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-            isEmail: true,
-        },
-    },
-    M1_Contact: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    M1_CNIC: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    M2_Name: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    M2_Email: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-            isEmail: true,
-        },
-    },
-    M2_Contact: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    M2_CNIC: {
-        type: DataTypes.STRING,
-        allowNull: true,
+    Members: {
+        type: DataTypes.JSON,
+        allowNull: false,
+        defaultValue: [],
     },
     BA_Id: {
         type: DataTypes.UUID,
@@ -96,7 +63,7 @@ const FYP = sequelize.define('FYP', {
         onDelete: 'CASCADE',
     },
     Project_Report: {
-        type: DataTypes.BLOB,
+        type: DataTypes.STRING,
         allowNull: false,
     }
 }, {
