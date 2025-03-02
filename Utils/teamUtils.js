@@ -39,7 +39,7 @@ exports.SendTeamRegisterMail = async (email, name, competition_name) => {
         <p style="margin-bottom: 0px; text-align: justify; padding: 0 25px 15px; font-size: 15px;">
           Dear ${name},
           <br><br>
-          Congratulations! Your team has been successfully registered for the <strong>${competition_name}</strong> at Developers Day 2025! We are thrilled to have you join us in this exciting competition.
+          Congratulations! Your team has been successfully registered for the <strong>${competition_name.toUpperCase()}</strong> competition at Developers Day 2025! We are thrilled to have you join us in this exciting competition.
           <br><br>
           Get ready to showcase your skills and compete with some of the best talents. We will be sharing further details, schedules, and guidelines soon.
           <br><br>

@@ -40,13 +40,13 @@ exports.SendFypRegisterMail = async (email, name) => {
         <p style="margin-bottom: 0px; text-align: justify; padding: 0 25px 15px; font-size: 15px;">
           Dear ${name},
           <br><br>
-          Congratulations! Your **FYP Extreme** team registration for **Developers Day 2025** has been successfully confirmed.
+          Congratulations! Your FYP Extreme team registration for Developers Day 2025 has been successfully confirmed.
           <br><br>
-          This is your chance to **showcase your Final Year Project** at an interactive stall where visitors can explore your work, ask questions, and experience your innovation firsthand.
+          This is your chance to showcase your Final Year Project at an interactive stall where visitors can explore your work, ask questions, and experience your innovation firsthand.
           <br><br>
           Our team will reach out soon with further details regarding stall setup, event schedule, and presentation guidelines. 
           <br><br>
-          We appreciate your participation and can’t wait to see your project in action!
+          We appreciate your participation and can't wait to see your project in action!
           <br><br>
           Best regards,<br>
           Team Developers' Day 2025
