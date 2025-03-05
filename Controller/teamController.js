@@ -15,10 +15,10 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Please fill the required fields.", 400));
     }
 
-    Team_Name = Team_Name.replace(/\b\w/g, (char) => char.toUpperCase()).toLowerCase();
-    L_Name = L_Name.replace(/\b\w/g, (char) => char.toUpperCase()).toLowerCase();
+    Team_Name = Team_Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+    L_Name = L_Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
     for (let member of Members) {
-        member.Name = member.Name.replace(/\b\w/g, (char) => char.toUpperCase()).toLowerCase();
+        member.Name = member.Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
     }
 
     const competition = await CompetitionModel.findByPk(Competition_Id);
