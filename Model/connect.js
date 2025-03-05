@@ -8,9 +8,6 @@ const JOEducation = require('./JobOrbitModels/JOEducationModel.js');
 const JOProjects = require('./JobOrbitModels/JOProjectsModel.js');
 const FYP = require('./fypModel.js');
 
-BrandAmbassador.hasMany(Team, { foreignKey: 'id' });
-Team.belongsTo(BrandAmbassador, { foreignKey: 'BA_Id' });
-
 BrandAmbassador.hasMany(FYP, { foreignKey: 'id' });
 FYP.belongsTo(BrandAmbassador, { foreignKey: 'BA_Id' });
 

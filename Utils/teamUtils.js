@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-exports.SendTeamRegisterMail = async (email, name, competition_name) => {
+exports.SendTeamRegisterMail = async (email, team_name, competition_name) => {
     try {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -37,7 +37,7 @@ exports.SendTeamRegisterMail = async (email, name, competition_name) => {
         </div>
 
         <p style="margin-bottom: 0px; text-align: justify; padding: 0 25px 15px; font-size: 15px;">
-          Dear ${name},
+          Dear <strong>${team_name}</strong>,
           <br><br>
           Congratulations! Your team has been successfully registered for the <strong>${competition_name.toUpperCase()}</strong> competition at Developers Day 2025! We are thrilled to have you join us in this exciting competition.
           <br><br>
@@ -72,7 +72,7 @@ exports.SendTeamRegisterMail = async (email, name, competition_name) => {
 
         const info = await transporter.sendMail(mailOptions);
         console.log('Email sent: ' + info.response);
-        console.log(`Mail sent to ${name} successfully.`);
+        console.log(`Mail sent to ${team_name} successfully.`);
 
         return true;
     } catch (error) {

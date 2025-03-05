@@ -127,7 +127,7 @@ exports.RegisterFyp = catchAsyncError(async (req, res, next) => {
         Project_Report: reportUrl
     });
 
-    SendFypRegisterMail(L_Email, L_Name);
+    SendFypRegisterMail(Team_Name , L_Email);
 
     res.status(200).json({
         success: true,

@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-exports.SendFypRegisterMail = async (email, name) => {
+exports.SendFypRegisterMail = async (team_name , email) => {
     try {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -38,7 +38,7 @@ exports.SendFypRegisterMail = async (email, name) => {
         </div>
 
         <p style="margin-bottom: 0px; text-align: justify; padding: 0 25px 15px; font-size: 15px;">
-          Dear ${name},
+          Dear <strong>${team_name}</strong>,
           <br><br>
           Congratulations! Your FYP Extreme team registration for Developers Day 2025 has been successfully confirmed.
           <br><br>
@@ -76,7 +76,7 @@ exports.SendFypRegisterMail = async (email, name) => {
 
         const info = await transporter.sendMail(mailOptions);
         console.log('Email sent: ' + info.response);
-        console.log(`Mail sent to ${name} successfully.`);
+        console.log(`Mail sent to ${team_name} successfully.`);
 
         return true;
     } catch (error) {

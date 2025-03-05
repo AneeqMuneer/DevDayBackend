@@ -23,38 +23,32 @@ const Team = sequelize.define(
       allowNull: false,
     },
     L_Name: {
-        type: DataTypes.STRING,
-        allowNull: false,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     L_Email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-            isEmail: true,
-        },
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        isEmail: true,
+      },
     },
     L_Contact: {
-        type: DataTypes.STRING,
-        allowNull: false,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     L_CNIC: {
-        type: DataTypes.STRING,
-        allowNull: false,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     Members: {
       type: DataTypes.JSON,
       allowNull: false,
       defaultValue: [],
     },
-    BA_Id: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: {
-        model: BrandAmbassador,
-        key: "id",
-      },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+    BA_Code: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     Payment_Verification_Status: {
       type: DataTypes.BOOLEAN,

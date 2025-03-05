@@ -11,6 +11,10 @@ const Competition = sequelize.define('Competition', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    Description: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
     Competition_Type: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -26,11 +30,15 @@ const Competition = sequelize.define('Competition', {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    Competition_End: {
-        type: DataTypes.DATE,
+    Max_Registeration: {
+        type: DataTypes.INTEGER,
         allowNull: false,
     },
-    Price: {
+    Entry_Fee: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    Prize: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },

@@ -9,10 +9,16 @@ const Team = require("../Model/teamModel");
 const AmbassadorModel = require("../Model/ambassadorModel");
 
 exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
-    const { Competition_Id, Institute_Name, Team_Name,  L_Name, L_Contact, L_Email, L_CNIC, Members, BA_Id } = req.body;
+    let { Competition_Id, Institute_Name, Team_Name,  L_Name, L_Contact, L_Email, L_CNIC, Members, BA_Code } = req.body;
 
-    if (!Competition_Id || !Institute_Name || !Team_Name || !Members || !BA_Id || !L_Name || !L_Contact || !L_Email || !L_CNIC) {
+    if (!Competition_Id || !Institute_Name || !Team_Name || !Members || !BA_Code || !L_Name || !L_Contact || !L_Email || !L_CNIC) {
         return next(new ErrorHandler("Please fill the required fields.", 400));
+    }
+
+    Team_Name = Team_Name.replace(/\b\w/g, (char) => char.toUpperCase()).toLowerCase();
+    L_Name = L_Name.replace(/\b\w/g, (char) => char.toUpperCase()).toLowerCase();
+    for (let member of Members) {
+        member.Name = member.Name.replace(/\b\w/g, (char) => char.toUpperCase()).toLowerCase();
     }
 
     const competition = await CompetitionModel.findByPk(Competition_Id);
@@ -21,8 +27,14 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Competition not found.", 404));
     }
 
-    if (Date.now() > competition.Competition_End) {
-        return next(new ErrorHandler("Competition registration has been closed.", 400));
+    const AllTeams = await TeamModel.findAll({
+        where: {
+            Competition_Id
+        }
+    });
+
+    if (AllTeams.length >= competition.Max_Registeration) {
+        return next(new ErrorHandler("Maximum registration limit reached.", 400));
     }
 
     if (!Array.isArray(Members) || Members.length < competition.Min_Participants-1 || Members.length > competition.Max_Participants-1) {
@@ -84,12 +96,6 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         }
     }
 
-    const ba = await AmbassadorModel.findByPk(BA_Id);
-
-    if (!ba) {
-        return next(new ErrorHandler("Brand Ambassador not found.", 404));
-    }
-
     const team = await TeamModel.create({
         Competition_Id,
         Institute_Name,
@@ -99,10 +105,10 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         L_Email,
         L_CNIC,
         Members,
-        BA_Id
+        BA_Code
     });
 
-    SendTeamRegisterMail(L_Email, L_Name, competition.Competition_Name);
+    SendTeamRegisterMail(L_Email, Team_Name, competition.Competition_Name);
 
     res.status(200).json({
         success: true,
