@@ -50,6 +50,10 @@ const Team = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    Payment_Photo: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     Payment_Verification_Status: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

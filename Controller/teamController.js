@@ -1,6 +1,7 @@
 const ErrorHandler = require("../Utils/errorHandler");
 const catchAsyncError = require("../Middleware/asyncError");
 const { Op, Sequelize } = require("sequelize");
+const cloudinary = require("../config/cloudinary.js");
 
 const TeamModel = require("../Model/teamModel");
 const CompetitionModel = require("../Model/competitionModel");
@@ -10,6 +11,8 @@ const AmbassadorModel = require("../Model/ambassadorModel");
 
 exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
     let { Competition_Id, Institute_Name, Team_Name,  L_Name, L_Contact, L_Email, L_CNIC, Members, BA_Code } = req.body;
+
+    console.log(Members);
 
     if (!Competition_Id || !Institute_Name || !Team_Name || !Members || !BA_Code || !L_Name || !L_Contact || !L_Email || !L_CNIC) {
         return next(new ErrorHandler("Please fill the required fields.", 400));
@@ -96,6 +99,30 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         }
     }
 
+    let paymentPhotoUrl = null;
+    if (req.file) {
+        try {
+            const uploadResult = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { resource_type: 'image', folder: 'teams' },
+                    (error, result) => {
+                        if (error) {
+                            reject(new ErrorHandler('Error uploading payment image to Cloudinary', 500));
+                        } else {
+                            resolve(result.secure_url);
+                        }
+                    }
+                );
+                stream.end(req.file.buffer);
+            });
+
+            paymentPhotoUrl = uploadResult;
+
+        } catch (err) {
+            return next(err);
+        }
+    }
+
     const team = await TeamModel.create({
         Competition_Id,
         Institute_Name,
@@ -105,7 +132,8 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         L_Email,
         L_CNIC,
         Members,
-        BA_Code
+        BA_Code,
+        Payment_Photo: paymentPhotoUrl
     });
 
     SendTeamRegisterMail(L_Email, Team_Name, competition.Competition_Name);
