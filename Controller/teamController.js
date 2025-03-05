@@ -15,7 +15,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
     console.log("Request body:", req.body);
     console.log("Request files:", req.files);
     
-    let { Competition_Id, Institute_Name, Team_Name,  L_Name, L_Contact, L_Email, L_CNIC, Members, BA_Code } = req.body;
+    let { Competition_Name, Institute_Name, Team_Name, L_Name, L_Contact, L_Email, L_CNIC, Members, BA_Code } = req.body;
 
     // Parse Members if it's a string (common when sent as form-data)
     if (Members && typeof Members === 'string') {
@@ -28,7 +28,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
 
     console.log(Members);
 
-    if (!Competition_Id || !Institute_Name || !Team_Name || !Members || !BA_Code || !L_Name || !L_Contact || !L_Email || !L_CNIC) {
+    if (!Competition_Name || !Institute_Name || !Team_Name || !Members || !BA_Code || !L_Name || !L_Contact || !L_Email || !L_CNIC) {
         return next(new ErrorHandler("Please fill the required fields.", 400));
     }
 
@@ -38,11 +38,17 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         member.Name = member.Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
     }
 
-    const competition = await CompetitionModel.findByPk(Competition_Id);
+    // Find competition by name instead of ID
+    const competition = await CompetitionModel.findOne({
+        where: { Competition_Name }
+    });
     
     if (!competition) {
         return next(new ErrorHandler("Competition not found.", 404));
     }
+
+    // Use the found competition's ID for further operations
+    const Competition_Id = competition.id;
 
     const AllTeams = await TeamModel.findAll({
         where: {
