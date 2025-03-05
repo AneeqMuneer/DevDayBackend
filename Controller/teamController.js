@@ -10,7 +10,21 @@ const Team = require("../Model/teamModel");
 const AmbassadorModel = require("../Model/ambassadorModel");
 
 exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
+    // Debug information
+    console.log("Request headers:", req.headers);
+    console.log("Request body:", req.body);
+    console.log("Request files:", req.files);
+    
     let { Competition_Id, Institute_Name, Team_Name,  L_Name, L_Contact, L_Email, L_CNIC, Members, BA_Code } = req.body;
+
+    // Parse Members if it's a string (common when sent as form-data)
+    if (Members && typeof Members === 'string') {
+        try {
+            Members = JSON.parse(Members);
+        } catch (error) {
+            return next(new ErrorHandler("Invalid Members format. Please provide a valid JSON array.", 400));
+        }
+    }
 
     console.log(Members);
 
@@ -100,7 +114,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
     }
 
     let paymentPhotoUrl = null;
-    if (req.file) {
+    if (req.files && req.files.length > 0) {
         try {
             const uploadResult = await new Promise((resolve, reject) => {
                 const stream = cloudinary.uploader.upload_stream(
@@ -113,7 +127,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
                         }
                     }
                 );
-                stream.end(req.file.buffer);
+                stream.end(req.files[0].buffer);
             });
 
             paymentPhotoUrl = uploadResult;

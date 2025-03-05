@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const middleware = require("./Middleware/error");
 const cors = require("cors");
+const multer = require("multer");
+const upload = multer();
 
 // app.use(cors({
 //     origin: "https://ba.devday25.com/",
@@ -11,7 +13,12 @@ const cors = require("cors");
 
 app.use(cors({ origin: "*" }));
 
+// Parse JSON bodies
 app.use(express.json());
+// Parse URL-encoded bodies (as sent by HTML forms)
+app.use(express.urlencoded({ extended: true }));
+// Parse multipart/form-data
+app.use(upload.any());
 
 const ambassadorRoutes = require("./Routes/ambassadorRoutes");
 const teamRoutes = require("./Routes/teamRoutes");
