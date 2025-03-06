@@ -143,6 +143,10 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         }
     }
 
+    if (!paymentPhotoUrl) {
+        return next(new ErrorHandler("Payment photo is required.", 400));
+    }
+
     const team = await TeamModel.create({
         Competition_Id,
         Institute_Name,
