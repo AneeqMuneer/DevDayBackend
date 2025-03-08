@@ -19,7 +19,7 @@ const Competition = sequelize.define('Competition', {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
-            isIn: [['General', 'CS', 'EE']],
+            isIn: [['GC', 'CS', 'EE']],
         }
     },
     Min_Participants: {

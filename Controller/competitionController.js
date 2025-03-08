@@ -2,7 +2,6 @@ const catchAsyncError = require("../Middleware/asyncError");
 const { Op } = require("sequelize");
 
 const competitionModel = require("../Model/competitionModel");
-const sequelize = competitionModel.sequelize;
 const ErrorHandler = require("../Utils/errorHandler");
 
 exports.getAllCompetitions = catchAsyncError(async (req, res, next) => {
@@ -17,24 +16,37 @@ exports.getAllCompetitions = catchAsyncError(async (req, res, next) => {
     }
 
     const competitions = await competitionModel.findAll({
-        where: whereClause,
-        order: [
-            [
-                sequelize.literal(`CASE 
-                    WHEN "Competition_Type" = 'CS' THEN 1 
-                    WHEN "Competition_Type" = 'EE' THEN 2 
-                    WHEN "Competition_Type" = 'GC' THEN 3 
-                    WHEN "Competition_Type" = 'ES' THEN 4 
-                    ELSE 5 
-                END`),
-                'ASC'
-            ]
-        ]
+        where: whereClause
+    });
+
+    let groupedCompetitions = {};
+
+    competitions.forEach(comp => {
+        let displayType;
+
+        switch (comp.Competition_Type) {
+            case "GC":
+                displayType = "General Competitions";
+                break;
+            case "CS":
+                displayType = "CS Competitions";
+                break;
+            case "EE":
+                displayType = "EE Competitions";
+                break;
+            default:
+                displayType = comp.Competition_Type;
+        }
+
+        if (!groupedCompetitions[displayType]) {
+            groupedCompetitions[displayType] = [];
+        }
+        groupedCompetitions[displayType].push(comp);
     });
 
     res.status(200).json({
         success: true,
-        competitions
+        competitions: groupedCompetitions
     });
 });
 
