@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../Data/db.js');
 const BrandAmbassador = require('./ambassadorModel.js');
 
-const FYP = sequelize.define('FYP', {
+const Project = sequelize.define('Project', {
     id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
@@ -24,7 +24,7 @@ const FYP = sequelize.define('FYP', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    Institution: {
+    Institution_Name: {
         type: DataTypes.STRING,
         allowNull: false,
     },
@@ -52,23 +52,17 @@ const FYP = sequelize.define('FYP', {
         allowNull: false,
         defaultValue: [],
     },
-    BA_Id: {
-        type: DataTypes.UUID,
-        allowNull: false,
-        references: {
-            model: BrandAmbassador,
-            key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
+    BA_Code: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
     Project_Report: {
         type: DataTypes.STRING,
         allowNull: false,
     }
 }, {
-    tableName: 'FYPs',
+    tableName: 'Projects',
     timestamps: true,
 });
 
-module.exports = FYP;
+module.exports = Project;

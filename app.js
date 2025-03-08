@@ -22,12 +22,12 @@ app.use(upload.any());
 
 const ambassadorRoutes = require("./Routes/ambassadorRoutes");
 const teamRoutes = require("./Routes/teamRoutes");
-const fypRoutes = require("./Routes/fypRoutes");
+const projectRoutes = require("./Routes/projectRoutes");
 const competitionRoutes = require("./Routes/competitionRoutes")
 
 app.use("/BrandAmbassador", ambassadorRoutes);
 app.use("/Team", teamRoutes);
-app.use("/FYP", fypRoutes);
+app.use("/Project", projectRoutes);
 app.use("/Competition", competitionRoutes);
 
 app.use(middleware)

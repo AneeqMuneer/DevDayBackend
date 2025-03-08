@@ -34,8 +34,15 @@ exports.getAllCompetitions = catchAsyncError(async (req, res, next) => {
             case "EE":
                 displayType = "EE Competitions";
                 break;
+            case "ES":
+                displayType = "ESports Competitions";
+                break;
             default:
                 displayType = comp.Competition_Type;
+        }
+
+        if (comp.Rulebook !== null) {
+            comp.Rulebook = `https://drive.usercontent.google.com/download?id=${comp.Rulebook}&export=download`;
         }
 
         if (!groupedCompetitions[displayType]) {

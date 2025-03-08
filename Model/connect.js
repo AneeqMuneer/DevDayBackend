@@ -6,10 +6,7 @@ const JOExperience = require('./JobOrbitModels/JOExperienceModel.js');
 const JOSkills = require('./JobOrbitModels/JOSkillsModel.js');
 const JOEducation = require('./JobOrbitModels/JOEducationModel.js');
 const JOProjects = require('./JobOrbitModels/JOProjectsModel.js');
-const FYP = require('./fypModel.js');
-
-BrandAmbassador.hasMany(FYP, { foreignKey: 'id' });
-FYP.belongsTo(BrandAmbassador, { foreignKey: 'BA_Id' });
+const Project = require('./projectModel.js');
 
 JOCandidate.hasMany(JOExperience, { foreignKey: 'CandidateId', onDelete: 'CASCADE' });
 JOExperience.belongsTo(JOCandidate, { foreignKey: 'CandidateId' });
