@@ -16,7 +16,7 @@ exports.SendTeamRegisterMail = async (email, team_name, competition_name) => {
         const mailOptions = {
             from: process.env.EMAIL,
             to: email,
-            subject: `Congratulations! Registeration successful for ${competition_name} - Developers Day 2025`,
+            subject: `Registration Request Received for ${competition_name} - Developers Day 2025`,
             html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -24,7 +24,7 @@ exports.SendTeamRegisterMail = async (email, team_name, competition_name) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Developers Day 2025 - ${competition_name} Registration Successful</title>
+  <title>Developers Day 2025 - ${competition_name} Registration Request Received</title>
 </head>
 
 <body style="height: 100%; align-items: center; background-color: white; margin: 0; font-family: Arial, sans-serif; display: flex;">
@@ -39,13 +39,11 @@ exports.SendTeamRegisterMail = async (email, team_name, competition_name) => {
         <p style="margin-bottom: 0px; text-align: justify; padding: 0 25px 15px; font-size: 15px;">
           Dear <strong>${team_name}</strong>,
           <br><br>
-          Congratulations! Your team has been successfully registered for the <strong>${competition_name.toUpperCase()}</strong> competition at Developers Day 2025! We are thrilled to have you join us in this exciting competition.
+          Thank you for registering for the <strong>${competition_name.toUpperCase()}</strong> competition at Developers Day 2025! We have received your registration request.
           <br><br>
-          Get ready to showcase your skills and compete with some of the best talents. We will be sharing further details, schedules, and guidelines soon.
+          Please note that your registration will be **confirmed** once your payment has been successfully verified.
           <br><br>
-          If you have any questions or require further assistance, feel free to reach out to us.
-          <br><br>
-          Best of luck, and we can't wait to see your team in action!
+          If you have any questions or require assistance, feel free to reach out to us.
           <br><br>
           Best regards,<br>
           Team Developers' Day 2025
