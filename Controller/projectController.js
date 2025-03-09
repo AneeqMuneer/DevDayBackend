@@ -91,43 +91,43 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
         }
     }
 
-    console.log(req.files);
-
     let reportUrl = null;
-    if (req.files && req.files.length > 0) {
+    if (req.files) {
+        if (req.files.length > 1) {
+            return next(new ErrorHandler("Only one project report is allowed.", 400));
+        }
+
         try {
             const projectReport = req.files.find(file => file.fieldname === 'Project_Report');
-            
+
             if (projectReport) {
-                // Azure Blob Storage implementation
                 const storageAccountName = process.env.AZURE_ACCOUNT_NAME;
                 const storageAccountKey = process.env.AZURE_ACCOUNT_KEY;
                 const containerName = process.env.AZURE_CONTAINER_NAME;
-                
-                // Create the BlobServiceClient object with connection string
+
+                const storageAccountBaseUrl = `https://${storageAccountName}.blob.core.windows.net`;
                 const sharedKeyCredential = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
                 const blobServiceClient = new BlobServiceClient(
-                    `https://${storageAccountName}.blob.core.windows.net`,
+                    storageAccountBaseUrl,
                     sharedKeyCredential
                 );
-                
-                // Get a reference to a container
+
                 const containerClient = blobServiceClient.getContainerClient(containerName);
-                
-                // Create a unique name for the blob
-                const blobName = `projects/${Date.now()}-${projectReport.originalname}`;
-                
-                // Get a block blob client
+
+                const FirstPart = L_CNIC.replace(/[\s-]+/g, '');
+                const SecondPart = projectReport.originalname.replace(/[\s-]+/g, '').toLowerCase().split('.')[0];
+                console.log(FirstPart, SecondPart);
+                const blobName = `${FirstPart}-${SecondPart}`;
+                console.log(blobName);
+
                 const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-                
-                // Upload data to the blob
+
                 await blockBlobClient.uploadData(projectReport.buffer, {
                     blobHTTPHeaders: {
                         blobContentType: projectReport.mimetype
                     }
                 });
-                
-                // Get the blob URL
+
                 reportUrl = blockBlobClient.url;
             }
         } catch (err) {
