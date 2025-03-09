@@ -26,7 +26,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         }
     }
 
-    if (!Competition_Name || !Institute_Name || !Team_Name || !Members || !BA_Code || !L_Name || !L_Contact || !L_Email || !L_CNIC) {
+    if (!Competition_Name || !Institute_Name || !Team_Name || !Members || !L_Name || !L_Contact || !L_Email || !L_CNIC) {
         return next(new ErrorHandler("Please fill the required fields.", 400));
     }
 
@@ -145,7 +145,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Payment photo is required.", 400));
     }
 
-    const team = await TeamModel.create({
+    const teamData = {
         Competition_Id,
         Institute_Name,
         Team_Name,
@@ -154,9 +154,15 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         L_Email,
         L_CNIC,
         Members,
-        BA_Code,
         Payment_Photo: paymentPhotoUrl
-    });
+    };
+
+    // Only add BA_Code to the team data if it exists
+    if (BA_Code) {
+        teamData.BA_Code = BA_Code;
+    }
+
+    const team = await TeamModel.create(teamData);
 
     SendTeamRegisterMail(L_Email, Team_Name, competition.Competition_Name);
 
