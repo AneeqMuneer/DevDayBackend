@@ -18,11 +18,11 @@ const Project = sequelize.define('Project', {
     },
     Description: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     Supervisor: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     Institution_Name: {
         type: DataTypes.STRING,

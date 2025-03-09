@@ -14,7 +14,7 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
     const { Project_Name, Description, Supervisor, Institution_Name, L_Email, L_Contact, L_CNIC, BA_Code } = req.body;
     let { Team_Name, L_Name, Members } = req.body;
 
-    if (!Team_Name || !Project_Name || !Description || !Members || !L_Name || !L_Contact || !L_Email || !L_CNIC || !Institution_Name || !Supervisor) {
+    if (!Team_Name || !Project_Name || !Members || !L_Name || !L_Contact || !L_Email || !L_CNIC || !Institution_Name) {
         return next(new ErrorHandler("Please fill the required fields.", 400));
     }
 
