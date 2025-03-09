@@ -42,7 +42,7 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
         ...Members
     ];
 
-    if (!Array.isArray(Members) || TeamMembers.length < 1 || TeamMembers.length > 3) {
+    if (!Array.isArray(Members) || TeamMembers.length < 1 || TeamMembers.length > 4) {
         return next(new ErrorHandler("Invalid number of participants.", 400));
     }
 
