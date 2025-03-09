@@ -28,10 +28,6 @@ const PR = sequelize.define(
         Amount_Owed: {
             type: DataTypes.INTEGER,
             defaultValue: 0
-        },
-        Total_Amount: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0
         }
     }, {
     tableName: 'PRs',

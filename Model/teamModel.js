@@ -10,9 +10,14 @@ const Team = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    Competition_Id: {
+    Competition_Name: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
+    },
+    Competition_Id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: true,
     },
     Institute_Name: {
       type: DataTypes.STRING,
