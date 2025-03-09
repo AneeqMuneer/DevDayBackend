@@ -5,9 +5,6 @@ const upload = require("../Middleware/multer.js");
 const ErrorHandler = require("../Utils/errorHandler");
 const router = express.Router();
 
-console.log("Ambassador routes loaded");
-
-// Handle multer errors for the signup route
 const handleMulterErrors = (req, res, next) => {
     console.log("handleMulterErrors middleware called");
     console.log("Request headers:", req.headers);
