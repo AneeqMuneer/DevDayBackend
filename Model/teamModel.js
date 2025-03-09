@@ -52,12 +52,11 @@ const Team = sequelize.define(
     },
     Payment_Photo: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     Payment_Verification_Status: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
-      allowNull: true
     },
   },
   {
