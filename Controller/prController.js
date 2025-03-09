@@ -4,7 +4,7 @@ const { Op, Sequelize } = require("sequelize");
 
 const prModel = require("../Model/prModel");
 
-exports.PRSignUp = catchAsyncError((req, res, next) => {
+exports.CreatePRMember = catchAsyncError((req, res, next) => {
     
 });
 
@@ -20,6 +20,6 @@ exports.GetAllRegisteredTeams = catchAsyncError((req, res, next) => {
 
 });
 
-exports.AdminAmountCollected = catchAsyncError((req, res, next) => {
+exports.AdminAmountCollect = catchAsyncError((req, res, next) => {
 
 });
