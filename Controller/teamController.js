@@ -46,7 +46,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         member.Name = member.Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
     }
 
-    // Find competition by name instead of ID
+    // Find competition by name
     const competition = await CompetitionModel.findOne({
         where: { Competition_Name }
     });
@@ -55,12 +55,9 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Competition not found.", 404));
     }
 
-    // Use the found competition's ID for further operations
-    const Competition_Id = competition.id;
-
     const AllTeams = await TeamModel.findAll({
         where: {
-            Competition_Id
+            Competition_Name
         }
     });
 
@@ -110,7 +107,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
 
         const existingTeam = await TeamModel.findOne({
             where: {
-                Competition_Id,
+                Competition_Name,
                 [Op.or]: emailArray.map((email, index) => ({
                     [Op.or]: [
                         { L_Email: email },
@@ -189,7 +186,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
     }
 
     const teamData = {
-        Competition_Id,
+        Competition_Name,
         Institute_Name,
         Team_Name,
         L_Name,
