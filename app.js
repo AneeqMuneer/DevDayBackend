@@ -2,14 +2,7 @@ const express = require("express");
 const app = express();
 const middleware = require("./Middleware/error");
 const cors = require("cors");
-const multer = require("multer");
-const upload = multer();
-
-// app.use(cors({
-//     origin: "https://ba.devday25.com/",
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//     allowedHeaders: ["Content-Type", "Authorization"],
-// }));
+const upload = require("./Middleware/multer");
 
 app.use(cors({ origin: "*" }));
 

@@ -29,10 +29,10 @@ exports.getAllCompetitions = catchAsyncError(async (req, res, next) => {
                 displayType = "General Competitions";
                 break;
             case "CS":
-                displayType = "CS Competitions";
+                displayType = "Computer Science Competitions";
                 break;
             case "EE":
-                displayType = "EE Competitions";
+                displayType = "Electrical Engineering Competitions";
                 break;
             case "ES":
                 displayType = "ESports Competitions";

@@ -91,14 +91,23 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
         }
     }
 
-    const report = req.file;
-    console.log(report);
+    console.log(req.file);
 
-    // const storageAccountBaseUrl = `https://${process.env.AZURE_ACCOUNT_NAME}.blob.core.windows.net`;
-    // const sharedKeyCredential = new StorageSharedKeyCredential(process.env.AZURE_ACCOUNT_NAME, process.env.AZURE_ACCOUNT_KEY);
-    // const blobServiceClient = new BlobServiceClient(storageAccountBaseUrl, sharedKeyCredential);
-    // const containerClient = blobServiceClient.getContainerClient(containerName);
-    // const blockBlobClient = await containerClient.getBlockBlobClient(`myFolder/${file.originalname}`);
+    if (req.file) {
+        const storageAccountBaseUrl = `https://${process.env.AZURE_ACCOUNT_NAME}.blob.core.windows.net`;
+        const sharedKeyCredential = new StorageSharedKeyCredential(process.env.AZURE_ACCOUNT_NAME, process.env.AZURE_ACCOUNT_KEY);
+        const blobServiceClient = new BlobServiceClient(storageAccountBaseUrl, sharedKeyCredential);
+        const containerClient = blobServiceClient.getContainerClient(process.env.AZURE_CONTAINER_NAME);
+        const blockBlobClient = containerClient.getBlockBlobClient(`myFolder/${file.originalname}`);
+        const url = blockBlobClient.uploadData(file.buffer, {
+            blockSize: file.size,
+            blobHTTPHeaders: {
+                blobContentType: file.mimetype,
+                blobContentEncoding: file.encoding
+            }
+        });
+        console.log(url);
+    }
 
     if (reportUrl === null) {
         return next(new ErrorHandler("Project report is required.", 400));
@@ -119,24 +128,11 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
         Project_Report: reportUrl
     });
 
-    SendProjectRegisterMail(Team_Name , L_Email);
+    SendProjectRegisterMail(Team_Name, L_Email);
 
     res.status(200).json({
         success: true,
         message: "Project registered successfully.",
         Project
     });
-});
-
-exports.DownloadFile = catchAsyncError(async (req, res, next) => {
-    const { id } = req.query;
-    const project = await ProjectModel.findByPk(id);
-
-    if (!project) {
-        return next(new ErrorHandler("project not found", 404));
-    }
-
-    res.setHeader("Content-Disposition", `attachment; filename=${project.projectName}.pdf`);
-    res.setHeader("Content-Type", "application/pdf");
-    res.send(project.document);
 });
