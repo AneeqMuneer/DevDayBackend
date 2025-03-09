@@ -4,6 +4,8 @@ const { Op, Sequelize } = require("sequelize");
 const TokenCreation = require("../Utils/tokenCreation.js");
 const bcrypt = require('bcrypt');
 
+const { SendTeamRegisterMail } = require("../Utils/teamUtils.js")
+
 const PRModel = require("../Model/prModel");
 const TeamModel = require("../Model/teamModel");
 const CompetitionModel = require("../Model/competitionModel");
