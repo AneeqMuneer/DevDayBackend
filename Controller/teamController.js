@@ -10,26 +10,13 @@ const Team = require("../Model/teamModel");
 const AmbassadorModel = require("../Model/ambassadorModel");
 
 exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
-    console.log("RegisterTeam function called");
     console.log("Request body:", JSON.stringify(req.body));
     console.log("Request files:", req.files ? `Files exist: ${req.files.length}` : "No files");
-    
+
     let { Competition_Name, Institute_Name, Team_Name, L_Name, L_Contact, L_Email, L_CNIC, Members, BA_Code } = req.body;
 
-    console.log("Extracted fields:", { 
-        Competition_Name, 
-        Institute_Name, 
-        Team_Name, 
-        L_Name, 
-        L_Contact, 
-        L_Email, 
-        L_CNIC, 
-        "Members type": typeof Members,
-        "BA_Code": BA_Code 
-    });
-
     // Parse Members if it's a string (common when sent as form-data)
-    if (Members && typeof Members === 'string') {
+    if (typeof Members === 'string' && Members.trim() !== '') {
         try {
             console.log("Parsing Members JSON string");
             Members = JSON.parse(Members);
@@ -40,7 +27,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         }
     }
 
-    if (!Competition_Name || !Institute_Name || !Team_Name || !Members || !L_Name || !L_Contact || !L_Email || !L_CNIC) {
+    if (!Competition_Name || !Institute_Name || !Team_Name || !L_Name || !L_Contact || !L_Email || !L_CNIC) {
         console.log("Missing required fields");
         console.log("Competition_Name:", Competition_Name);
         console.log("Institute_Name:", Institute_Name);
@@ -63,7 +50,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
     const competition = await CompetitionModel.findOne({
         where: { Competition_Name }
     });
-    
+
     if (!competition) {
         return next(new ErrorHandler("Competition not found.", 404));
     }
@@ -81,18 +68,22 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Maximum registration limit reached.", 400));
     }
 
-    if (!Array.isArray(Members) || Members.length < competition.Min_Participants-1 || Members.length > competition.Max_Participants-1) {
+    if (!Array.isArray(Members) || Members.length < competition.Min_Participants - 1 || Members.length > competition.Max_Participants - 1) {
         return next(new ErrorHandler("Invalid number of participants.", 400));
     }
 
-    const TeamMembers = [ 
-        { 
+    if (Members === undefined) {
+        Members = [];
+    }
+
+    const TeamMembers = [
+        {
             Name: L_Name,
             Email: L_Email,
             Contact: L_Contact,
-            CNIC: L_CNIC 
-        }, 
-        ...Members ];
+            CNIC: L_CNIC
+        },
+        ...Members];
 
     const emails = new Set();
     const contacts = new Set();
@@ -144,23 +135,23 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
     // Check both req.files (array format) and req.file (single file format)
     if ((req.files && req.files.length > 0) || req.file) {
         console.log("Processing payment photo upload");
-        
+
         // Get the file from either req.files array or req.file
         const file = req.files && req.files.length > 0 ? req.files[0] : req.file;
-        
+
         console.log("File details:", {
             mimetype: file.mimetype,
             size: file.size,
             hasBuffer: !!file.buffer
         });
-        
+
         try {
             const uploadResult = await new Promise((resolve, reject) => {
                 if (!file.buffer) {
                     console.log("No buffer in payment photo file");
                     return reject(new ErrorHandler('Invalid file data', 400));
                 }
-                
+
                 console.log("Creating upload stream for payment photo");
                 const stream = cloudinary.uploader.upload_stream(
                     { resource_type: 'image', folder: 'teams' },
@@ -174,7 +165,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
                         }
                     }
                 );
-                
+
                 console.log("Writing payment photo to stream");
                 stream.write(file.buffer);
                 console.log("Ending payment photo stream");
@@ -228,5 +219,5 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
 exports.ProcessPayment = catchAsyncError(async (req, res, next) => {
 });
 
-exports.ApprovePayment = catchAsyncError(async (req , res , next) => {
+exports.ApprovePayment = catchAsyncError(async (req, res, next) => {
 });

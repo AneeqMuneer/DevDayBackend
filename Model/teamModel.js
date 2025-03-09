@@ -10,10 +10,10 @@ const Team = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    // Competition_Name: {
-    //   type: DataTypes.STRING,
-    //   allowNull: false,
-    // },
+    Competition_Name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     Institute_Name: {
       type: DataTypes.STRING,
       allowNull: false,
