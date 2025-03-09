@@ -91,23 +91,49 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
         }
     }
 
-    console.log(req.file);
+    console.log(req.files);
 
-    if (req.file) {
-        // const storageAccountBaseUrl = `https://${process.env.AZURE_ACCOUNT_NAME}.blob.core.windows.net`;
-        // const sharedKeyCredential = new StorageSharedKeyCredential(process.env.AZURE_ACCOUNT_NAME, process.env.AZURE_ACCOUNT_KEY);
-        // const blobServiceClient = new BlobServiceClient(storageAccountBaseUrl, sharedKeyCredential);
-        // const containerClient = blobServiceClient.getContainerClient(process.env.AZURE_CONTAINER_NAME);
-        // const blockBlobClient = containerClient.getBlockBlobClient(`myFolder/${file.originalname}`);
-        // const url = blockBlobClient.uploadData(file.buffer, {
-        //     blockSize: file.size,
-        //     blobHTTPHeaders: {
-        //         blobContentType: file.mimetype,
-        //         blobContentEncoding: file.encoding
-        //     }
-        // });
-        // console.log(url);
-        console.log("Hello");
+    let reportUrl = null;
+    if (req.files && req.files.length > 0) {
+        try {
+            const projectReport = req.files.find(file => file.fieldname === 'Project_Report');
+            
+            if (projectReport) {
+                // Azure Blob Storage implementation
+                const storageAccountName = process.env.AZURE_ACCOUNT_NAME;
+                const storageAccountKey = process.env.AZURE_ACCOUNT_KEY;
+                const containerName = process.env.AZURE_CONTAINER_NAME;
+                
+                // Create the BlobServiceClient object with connection string
+                const sharedKeyCredential = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
+                const blobServiceClient = new BlobServiceClient(
+                    `https://${storageAccountName}.blob.core.windows.net`,
+                    sharedKeyCredential
+                );
+                
+                // Get a reference to a container
+                const containerClient = blobServiceClient.getContainerClient(containerName);
+                
+                // Create a unique name for the blob
+                const blobName = `projects/${Date.now()}-${projectReport.originalname}`;
+                
+                // Get a block blob client
+                const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+                
+                // Upload data to the blob
+                await blockBlobClient.uploadData(projectReport.buffer, {
+                    blobHTTPHeaders: {
+                        blobContentType: projectReport.mimetype
+                    }
+                });
+                
+                // Get the blob URL
+                reportUrl = blockBlobClient.url;
+            }
+        } catch (err) {
+            console.error("Azure Blob Storage upload error:", err);
+            return next(new ErrorHandler("Error uploading project report to Azure Blob Storage", 500));
+        }
     }
 
     if (reportUrl === null) {

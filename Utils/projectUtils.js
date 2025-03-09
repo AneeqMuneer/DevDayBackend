@@ -16,7 +16,7 @@ exports.SendProjectRegisterMail = async (team_name , email) => {
         const mailOptions = {
             from: process.env.EMAIL,
             to: email,
-            subject: 'Congratulations! Project registration successful - Developers Day 2025',
+            subject: 'Congratulations! Project Registration Successful - Developers Day 2025',
             html: `
 <!DOCTYPE html>
 <html lang="en">
