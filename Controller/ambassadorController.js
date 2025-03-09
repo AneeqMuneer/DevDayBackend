@@ -69,6 +69,10 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
     if (req.file) {
         try {
             const uploadResult = await new Promise((resolve, reject) => {
+                if (!req.file.buffer) {
+                    return reject(new ErrorHandler('Invalid file data', 400));
+                }
+                
                 const stream = cloudinary.uploader.upload_stream(
                     { resource_type: 'image', folder: 'ambassadors' },
                     (error, result) => {
@@ -79,7 +83,9 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
                         }
                     }
                 );
-                stream.end(req.file.buffer);
+                
+                stream.write(req.file.buffer);
+                stream.end();
             });
 
             profilePhotoUrl = uploadResult;
@@ -89,24 +95,28 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
         }
     }
 
-    const ambassador = await AmbassadorModel.create({
-        Code,
-        Name,
-        Contact,
-        Email,
-        CNIC,
-        Institution,
-        Instagram_Handle,
-        ProfilePhoto: profilePhotoUrl
-    });
+    try {
+        const ambassador = await AmbassadorModel.create({
+            Code,
+            Name,
+            Contact,
+            Email,
+            CNIC,
+            Institution,
+            Instagram_Handle,
+            ProfilePhoto: profilePhotoUrl
+        });
 
-    await SendEmail(ambassador.Email, ambassador.Name);
+        await SendEmail(ambassador.Email, ambassador.Name);
 
-    res.status(200).json({
-        success: true,
-        message: "Ambassador sign-up successful",
-        ambassador
-    });
+        res.status(200).json({
+            success: true,
+            message: "Ambassador sign-up successful",
+            ambassador
+        });
+    } catch (error) {
+        return next(new ErrorHandler(error.message || "Error creating ambassador", 500));
+    }
 });
 
 exports.GetAllAmbassador = catchAsyncError(async (req, res, next) => {
