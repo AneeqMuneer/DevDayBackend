@@ -10,10 +10,6 @@ const Team = require("../Model/teamModel");
 const AmbassadorModel = require("../Model/ambassadorModel");
 
 exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
-    // Debug information
-    console.log("Request headers:", req.headers);
-    console.log("Request body:", req.body);
-    console.log("Request files:", req.files);
     
     let { Competition_Name, Institute_Name, Team_Name, L_Name, L_Contact, L_Email, L_CNIC, Members, BA_Code } = req.body;
 
