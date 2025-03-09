@@ -11,17 +11,47 @@ const { SendProjectRegisterMail } = require("../Utils/projectUtils.js");
 
 
 exports.RegisterProject = catchAsyncError(async (req, res, next) => {
+    console.log("RegisterProject function called");
+    console.log("Request body:", JSON.stringify(req.body));
+    console.log("Request files:", req.files ? `Files exist: ${req.files.length}` : "No files");
+    
     const { Project_Name, Description, Supervisor, Institution_Name, L_Email, L_Contact, L_CNIC, BA_Code } = req.body;
     let { Team_Name, L_Name, Members } = req.body;
 
+    console.log("Extracted fields:", { 
+        Team_Name, 
+        Project_Name, 
+        Description,
+        Supervisor,
+        Institution_Name,
+        L_Name,
+        L_Contact,
+        L_Email,
+        L_CNIC,
+        "Members type": typeof Members,
+        "BA_Code": BA_Code 
+    });
+
     if (!Team_Name || !Project_Name || !Members || !L_Name || !L_Contact || !L_Email || !L_CNIC || !Institution_Name) {
+        console.log("Missing required fields");
+        console.log("Team_Name:", Team_Name);
+        console.log("Project_Name:", Project_Name);
+        console.log("Members:", Members);
+        console.log("L_Name:", L_Name);
+        console.log("L_Contact:", L_Contact);
+        console.log("L_Email:", L_Email);
+        console.log("L_CNIC:", L_CNIC);
+        console.log("Institution_Name:", Institution_Name);
         return next(new ErrorHandler("Please fill the required fields.", 400));
     }
 
     if (Members && typeof Members === 'string') {
         try {
+            console.log("Parsing Members JSON string");
             Members = JSON.parse(Members);
+            console.log("Parsed Members:", Members);
         } catch (error) {
+            console.log("Error parsing Members:", error);
             return next(new ErrorHandler("Invalid Members format. Please provide a valid JSON array.", 400));
         }
     }
@@ -92,18 +122,35 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
     }
 
     let reportUrl = null;
-    if (req.files) {
+    if (req.files && req.files.length > 0) {
+        console.log("Processing project report upload");
+        console.log("Files available:", req.files.map(f => ({ fieldname: f.fieldname, originalname: f.originalname })));
+        
         if (req.files.length > 1) {
+            console.log("Too many files submitted");
             return next(new ErrorHandler("Only one project report is allowed.", 400));
         }
 
         try {
             const projectReport = req.files.find(file => file.fieldname === 'Project_Report');
-
+            
             if (projectReport) {
+                console.log("Project report found:", {
+                    originalname: projectReport.originalname,
+                    mimetype: projectReport.mimetype,
+                    size: projectReport.size,
+                    hasBuffer: !!projectReport.buffer
+                });
+                
                 const storageAccountName = process.env.AZURE_ACCOUNT_NAME;
                 const storageAccountKey = process.env.AZURE_ACCOUNT_KEY;
                 const containerName = process.env.AZURE_CONTAINER_NAME;
+
+                console.log("Azure storage configuration:", {
+                    accountName: storageAccountName ? "Set" : "Not set",
+                    accountKey: storageAccountKey ? "Set" : "Not set",
+                    containerName: containerName ? "Set" : "Not set"
+                });
 
                 const storageAccountBaseUrl = `https://${storageAccountName}.blob.core.windows.net`;
                 const sharedKeyCredential = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
@@ -112,11 +159,13 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
                     sharedKeyCredential
                 );
 
+                console.log("Created blob service client");
                 const containerClient = blobServiceClient.getContainerClient(containerName);
+                console.log("Created container client");
 
                 const FirstPart = L_CNIC.replace(/[\s-]+/g, '');
                 const SecondPart = projectReport.originalname.replace(/[\s-]+/g, '').toLowerCase();
-                console.log(FirstPart, SecondPart);
+                console.log("Blob name parts:", FirstPart, SecondPart);
                 
                 // Sanitize the blob name to ensure it only contains valid characters
                 // Azure Blob Storage allows letters, numbers, and limited special characters
@@ -128,22 +177,31 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
                 console.log("Sanitized blob name:", blobName);
                 
                 const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+                console.log("Created block blob client");
 
+                console.log("Uploading to Azure Blob Storage...");
                 await blockBlobClient.uploadData(projectReport.buffer, {
                     blobHTTPHeaders: {
                         blobContentType: projectReport.mimetype
                     }
                 });
+                console.log("Upload complete");
 
                 reportUrl = blockBlobClient.url;
+                console.log("Report URL:", reportUrl);
+            } else {
+                console.log("Project report not found in files");
             }
         } catch (err) {
             console.error("Azure Blob Storage upload error:", err);
             return next(new ErrorHandler("Error uploading project report to Azure Blob Storage", 500));
         }
+    } else {
+        console.log("No files found in request");
     }
 
     if (reportUrl === null) {
+        console.log("Report URL is null");
         return next(new ErrorHandler("Project report is required.", 400));
     }
 

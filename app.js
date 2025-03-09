@@ -7,12 +7,22 @@ const cors = require("cors");
 
 console.log("App starting...");
 
-app.use(cors({ origin: "*" }));
+// Configure CORS
+app.use(cors({ 
+    origin: "*",
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-// Parse JSON bodies
-app.use(express.json());
-// Parse URL-encoded bodies (as sent by HTML forms)
-app.use(express.urlencoded({ extended: true }));
+// Parse JSON bodies with increased limit for larger payloads
+app.use(express.json({ limit: '50mb' }));
+
+// Parse URL-encoded bodies with increased limit
+app.use(express.urlencoded({ 
+    extended: true,
+    limit: '50mb'
+}));
+
 // Remove the global multer middleware as it conflicts with route-specific multer
 // app.use(upload.any());
 
