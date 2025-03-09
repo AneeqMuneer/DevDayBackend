@@ -1,10 +1,12 @@
 const ErrorHandler = require("../Utils/errorHandler");
 const catchAsyncError = require("../Middleware/asyncError");
 const { Op, Sequelize } = require("sequelize");
+const TokenCreation = require("../Utils/tokenCreation.js");
 
 const PRModel = require("../Model/prModel");
 const TeamModel = require("../Model/teamModel");
 const CompetitionModel = require("../Model/competitionModel");
+const PR = require("../Model/prModel");
 
 exports.CreatePRMember = catchAsyncError((req, res, next) => {
     const { Username } = req.body;
@@ -48,6 +50,8 @@ exports.PRLogin = catchAsyncError((req, res, next) => {
         message: "PR Member Logged In Successfully",
         data: PRMember
     });
+
+    TokenCreation(data, 201, res);
 });
 
 exports.RegisterTeam = catchAsyncError((req, res, next) => {
@@ -83,6 +87,10 @@ exports.AdminAmountCollect = catchAsyncError((req, res, next) => {
 
     if(!PRMember) {
         return next(new ErrorHandler("Invalid PR Member", 404));
+    }
+
+    if(Collected_Amount > PRMember.Amount_Owed) {
+        return next(new ErrorHandler("Amount Exceeds the Amount Owed", 400));
     }
 
     PRMember.Amount_Submitted += Collected_Amount;

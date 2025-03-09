@@ -4,8 +4,6 @@ const upload = require("../Middleware/multer.js");
 const ErrorHandler = require("../Utils/errorHandler");
 const router = express.Router();
 
-console.log("Team routes loaded");
-
 // Handle multer errors for the team registration route
 const handleMulterErrors = (req, res, next) => {
     console.log("Team registration - handleMulterErrors middleware called");

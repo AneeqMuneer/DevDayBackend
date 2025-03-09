@@ -4,8 +4,6 @@ const upload = require("../Middleware/multer.js");
 const ErrorHandler = require("../Utils/errorHandler");
 const router = express.Router();
 
-console.log("Project routes loaded");
-
 // Handle multer errors for the project registration route
 const handleMulterErrors = (req, res, next) => {
     console.log("Project registration - handleMulterErrors middleware called");
