@@ -57,6 +57,7 @@ const Team = sequelize.define(
     Payment_Verification_Status: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
+      allowNull: true
     },
   },
   {

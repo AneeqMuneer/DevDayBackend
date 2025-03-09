@@ -1,5 +1,11 @@
-function toTitleCase(str) {
-    return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
-}
+const bcrypt = require('bcrypt');
 
-console.log(toTitleCase("hello wOrld, this is javascript!"));
+const enteredPassword = "0mdhprhs";  // Replace with the actual password you entered
+const storedHash = "$2a$10$HpsiLWmgWB2YlIYS0ExY8OByXDENwQBHhI8pSlWonzBJYMBpk3STG"; // Your stored password
+
+console.log()
+
+bcrypt.compare(enteredPassword, storedHash, (err, result) => {
+    console.log("Password Matches?", result);
+    console.log("Error (if any):", err);
+});

@@ -40,12 +40,6 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Please fill the required fields.", 400));
     }
 
-    Team_Name = Team_Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
-    L_Name = L_Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
-    for (let member of Members) {
-        member.Name = member.Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
-    }
-
     // Find competition by name
     const competition = await CompetitionModel.findOne({
         where: { Competition_Name }
@@ -67,10 +61,6 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
 
     if (!Array.isArray(Members) || Members.length < competition.Min_Participants - 1 || Members.length > competition.Max_Participants - 1) {
         return next(new ErrorHandler("Invalid number of participants.", 400));
-    }
-
-    if (Members === undefined) {
-        Members = [];
     }
 
     const TeamMembers = [
@@ -183,6 +173,12 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
     if (!paymentPhotoUrl) {
         console.log("Payment photo URL is missing");
         return next(new ErrorHandler("Payment photo is required.", 400));
+    }
+
+    Team_Name = Team_Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+    L_Name = L_Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+    for (let member of Members) {
+        member.Name = member.Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
     }
 
     const teamData = {

@@ -7,20 +7,20 @@ const dotenv = require('dotenv');
 dotenv.config({ path: "../config/config.env" });
 
 const ProjectModel = require("../Model/projectModel.js");
-const { SendProjectRegistrationReceiptMail } = require("../Utils/projectUtils.js");
+const { SendProjectRegisterMail } = require("../Utils/projectUtils.js");
 
 
 exports.RegisterProject = catchAsyncError(async (req, res, next) => {
     console.log("RegisterProject function called");
     console.log("Request body:", JSON.stringify(req.body));
     console.log("Request files:", req.files ? `Files exist: ${req.files.length}` : "No files");
-    
+
     const { Project_Name, Description, Supervisor, Institution_Name, L_Email, L_Contact, L_CNIC, BA_Code } = req.body;
     let { Team_Name, L_Name, Members } = req.body;
 
-    console.log("Extracted fields:", { 
-        Team_Name, 
-        Project_Name, 
+    console.log("Extracted fields:", {
+        Team_Name,
+        Project_Name,
         Description,
         Supervisor,
         Institution_Name,
@@ -29,7 +29,7 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
         L_Email,
         L_CNIC,
         "Members type": typeof Members,
-        "BA_Code": BA_Code 
+        "BA_Code": BA_Code
     });
 
     if (!Team_Name || !Project_Name || !Members || !L_Name || !L_Contact || !L_Email || !L_CNIC || !Institution_Name) {
@@ -54,12 +54,6 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
             console.log("Error parsing Members:", error);
             return next(new ErrorHandler("Invalid Members format. Please provide a valid JSON array.", 400));
         }
-    }
-
-    Team_Name = Team_Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
-    L_Name = L_Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
-    for (let member of Members) {
-        member.Name = member.Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
     }
 
     const TeamMembers = [
@@ -125,7 +119,7 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
     if (req.files && req.files.length > 0) {
         console.log("Processing project report upload");
         console.log("Files available:", req.files.map(f => ({ fieldname: f.fieldname, originalname: f.originalname })));
-        
+
         if (req.files.length > 1) {
             console.log("Too many files submitted");
             return next(new ErrorHandler("Only one project report is allowed.", 400));
@@ -133,7 +127,7 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
 
         try {
             const projectReport = req.files.find(file => file.fieldname === 'Project_Report');
-            
+
             if (projectReport) {
                 console.log("Project report found:", {
                     originalname: projectReport.originalname,
@@ -141,7 +135,7 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
                     size: projectReport.size,
                     hasBuffer: !!projectReport.buffer
                 });
-                
+
                 const storageAccountName = process.env.AZURE_ACCOUNT_NAME;
                 const storageAccountKey = process.env.AZURE_ACCOUNT_KEY;
                 const containerName = process.env.AZURE_CONTAINER_NAME;
@@ -166,7 +160,7 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
                 const FirstPart = L_CNIC.replace(/[\s-]+/g, '');
                 const SecondPart = projectReport.originalname.replace(/[\s-]+/g, '').toLowerCase();
                 console.log("Blob name parts:", FirstPart, SecondPart);
-                
+
                 // Sanitize the blob name to ensure it only contains valid characters
                 // Azure Blob Storage allows letters, numbers, and limited special characters
                 let blobName = `${FirstPart}-${SecondPart}`;
@@ -175,7 +169,7 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
                 // Ensure the name is between 1-1024 characters
                 blobName = blobName.substring(0, 1024);
                 console.log("Sanitized blob name:", blobName);
-                
+
                 const blockBlobClient = containerClient.getBlockBlobClient(blobName);
                 console.log("Created block blob client");
 
@@ -205,6 +199,12 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Project report is required.", 400));
     }
 
+    Team_Name = Team_Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+    L_Name = L_Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+    for (let member of Members) {
+        member.Name = member.Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+    }
+
     const Project = await ProjectModel.create({
         Team_Name,
         Project_Name,
@@ -220,7 +220,7 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
         Project_Report: reportUrl
     });
 
-    SendProjectRegistrationReceiptMail(Team_Name, L_Email);
+    SendProjectRegisterMail(Team_Name, L_Email);
 
     res.status(200).json({
         success: true,

@@ -1,5 +1,8 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../Data/db.js");
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const PR = sequelize.define(
     "PR",
@@ -57,6 +60,7 @@ PR.prototype.getJWTToken = function () {
 PR.prototype.comparePassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.Password);
 };
+
 
 PR.prototype.getResetPasswordToken = function () {
     const resetToken = crypto.randomBytes(20).toString("hex");

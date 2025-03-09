@@ -2,10 +2,14 @@ const asyncError = require("../Middleware/asyncError.js");
 const errorHandler = require("../Utils/errorHandler");
 const jwt = require("jsonwebtoken");
 const PRMember = require("../Model/prModel.js");
+const dotenv = require("dotenv");
+
+dotenv.config({ path: "./config/config.env" });
 
 exports.VerifyPRMember = asyncError(async (req, res, next) => {
-    const token = req.header("authorization");
+    let token = req.header("Authorization").replace("Bearer ", "");
 
+    console.log(token);
     if (!token) {
         return next(
             new errorHandler("Please login to access this resource", 401)
@@ -13,6 +17,8 @@ exports.VerifyPRMember = asyncError(async (req, res, next) => {
     }
 
     const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+    
+    console.log(decodedData);
 
     const member = await PRMember.findByPk(decodedData.id);
 
