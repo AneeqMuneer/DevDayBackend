@@ -43,7 +43,7 @@ const Team = sequelize.define(
     },
     Members: {
       type: DataTypes.JSON,
-      allowNull: false,
+      allowNull: true,
       defaultValue: [],
     },
     BA_Code: {

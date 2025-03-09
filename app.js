@@ -14,11 +14,13 @@ const ambassadorRoutes = require("./Routes/ambassadorRoutes");
 const teamRoutes = require("./Routes/teamRoutes");
 const projectRoutes = require("./Routes/projectRoutes");
 const competitionRoutes = require("./Routes/competitionRoutes")
+const prRoutes = require("./Routes/prRoutes.js");
 
 app.use("/BrandAmbassador", ambassadorRoutes);
 app.use("/Team", teamRoutes);
 app.use("/Project", projectRoutes);
 app.use("/Competition", competitionRoutes);
+app.use("/PR", prRoutes);
 
 app.use(middleware)
 module.exports = app;

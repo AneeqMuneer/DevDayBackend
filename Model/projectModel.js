@@ -49,7 +49,7 @@ const Project = sequelize.define('Project', {
     },
     Members: {
         type: DataTypes.JSON,
-        allowNull: false,
+        allowNull: true,
         defaultValue: [],
     },
     BA_Code: {

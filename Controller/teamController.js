@@ -22,7 +22,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         }
     }
 
-    if (!Competition_Name || !Institute_Name || !Team_Name || !Members || !L_Name || !L_Contact || !L_Email || !L_CNIC) {
+    if (!Competition_Name || !Institute_Name || !Team_Name || !L_Name || !L_Contact || !L_Email || !L_CNIC) {
         return next(new ErrorHandler("Please fill the required fields.", 400));
     }
 
