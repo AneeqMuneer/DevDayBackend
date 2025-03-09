@@ -7,7 +7,7 @@ const dotenv = require('dotenv');
 dotenv.config({ path: "../config/config.env" });
 
 const ProjectModel = require("../Model/projectModel.js");
-const { SendProjectRegisterMail } = require("../Utils/projectUtils.js");
+const { SendProjectRegistrationReceiptMail } = require("../Utils/projectUtils.js");
 
 
 exports.RegisterProject = catchAsyncError(async (req, res, next) => {
@@ -220,7 +220,7 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
         Project_Report: reportUrl
     });
 
-    SendProjectRegisterMail(Team_Name, L_Email);
+    SendProjectRegistrationReceiptMail(Team_Name, L_Email);
 
     res.status(200).json({
         success: true,
