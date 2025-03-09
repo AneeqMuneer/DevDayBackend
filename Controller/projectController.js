@@ -115,11 +115,18 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
                 const containerClient = blobServiceClient.getContainerClient(containerName);
 
                 const FirstPart = L_CNIC.replace(/[\s-]+/g, '');
-                const SecondPart = projectReport.originalname.replace(/[\s-]+/g, '').toLowerCase().split('.')[0];
+                const SecondPart = projectReport.originalname.replace(/[\s-]+/g, '').toLowerCase();
                 console.log(FirstPart, SecondPart);
-                const blobName = `${FirstPart}-${SecondPart}`;
-                console.log(blobName);
-
+                
+                // Sanitize the blob name to ensure it only contains valid characters
+                // Azure Blob Storage allows letters, numbers, and limited special characters
+                let blobName = `${FirstPart}-${SecondPart}`;
+                // Replace any invalid characters with underscores
+                blobName = blobName.replace(/[^a-z0-9\-_.]/gi, '_');
+                // Ensure the name is between 1-1024 characters
+                blobName = blobName.substring(0, 1024);
+                console.log("Sanitized blob name:", blobName);
+                
                 const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
                 await blockBlobClient.uploadData(projectReport.buffer, {
