@@ -94,19 +94,20 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
     console.log(req.file);
 
     if (req.file) {
-        const storageAccountBaseUrl = `https://${process.env.AZURE_ACCOUNT_NAME}.blob.core.windows.net`;
-        const sharedKeyCredential = new StorageSharedKeyCredential(process.env.AZURE_ACCOUNT_NAME, process.env.AZURE_ACCOUNT_KEY);
-        const blobServiceClient = new BlobServiceClient(storageAccountBaseUrl, sharedKeyCredential);
-        const containerClient = blobServiceClient.getContainerClient(process.env.AZURE_CONTAINER_NAME);
-        const blockBlobClient = containerClient.getBlockBlobClient(`myFolder/${file.originalname}`);
-        const url = blockBlobClient.uploadData(file.buffer, {
-            blockSize: file.size,
-            blobHTTPHeaders: {
-                blobContentType: file.mimetype,
-                blobContentEncoding: file.encoding
-            }
-        });
-        console.log(url);
+        // const storageAccountBaseUrl = `https://${process.env.AZURE_ACCOUNT_NAME}.blob.core.windows.net`;
+        // const sharedKeyCredential = new StorageSharedKeyCredential(process.env.AZURE_ACCOUNT_NAME, process.env.AZURE_ACCOUNT_KEY);
+        // const blobServiceClient = new BlobServiceClient(storageAccountBaseUrl, sharedKeyCredential);
+        // const containerClient = blobServiceClient.getContainerClient(process.env.AZURE_CONTAINER_NAME);
+        // const blockBlobClient = containerClient.getBlockBlobClient(`myFolder/${file.originalname}`);
+        // const url = blockBlobClient.uploadData(file.buffer, {
+        //     blockSize: file.size,
+        //     blobHTTPHeaders: {
+        //         blobContentType: file.mimetype,
+        //         blobContentEncoding: file.encoding
+        //     }
+        // });
+        // console.log(url);
+        console.log("Hello");
     }
 
     if (reportUrl === null) {
