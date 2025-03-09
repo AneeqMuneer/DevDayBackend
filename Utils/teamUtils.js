@@ -33,7 +33,7 @@ exports.SendTeamRegisterMail = async (email, team_name, competition_name) => {
       <div style="margin: 5px 0px 0px 0px; background: linear-gradient(to bottom right, #a02723, #000000); color: #FFFFFF; padding: 10px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);">
         
         <div style="text-align: center; padding: 20px 0;">
-          <img style="height:7em;" src="https://i.ibb.co/hRSB2k1w/DD-25-Logo-With-Outline-Full-V7.png" alt="Developers Day 2025 Logo" border="0">
+          <img style="height:7em;" src="https://res.cloudinary.com/da6bsligl/image/upload/v1741530918/teams/yyyjnwuefugf5vefuuop.png" alt="Developers Day 2025 Logo" border="0">
         </div>
 
         <p style="margin-bottom: 0px; text-align: justify; padding: 0 25px 15px; font-size: 15px;">
