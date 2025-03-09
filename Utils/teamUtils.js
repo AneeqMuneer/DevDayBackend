@@ -41,7 +41,7 @@ exports.SendTeamRegisterMail = async (email, team_name, competition_name) => {
           <br><br>
           Thank you for registering for the <strong>${competition_name.toUpperCase()}</strong> competition at Developers Day 2025! We have received your registration request.
           <br><br>
-          Please note that your registration will be **confirmed** once your payment has been successfully verified.
+          Please note that your registration will be <strong>confirmed</strong> once your payment has been successfully verified.
           <br><br>
           If you have any questions or require assistance, feel free to reach out to us.
           <br><br>
