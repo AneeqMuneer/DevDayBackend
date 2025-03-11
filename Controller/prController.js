@@ -65,22 +65,6 @@ exports.PRLogin = catchAsyncError(async (req, res, next) => {
     TokenCreation(PRMember, 201, res);
 });
 
-exports.PRLogout = catchAsyncError(async (req, res, next) => {
-    if (req.user.member) {
-        res.cookie("token", null, {
-            expires: new Date(0),
-            httpOnly: true,
-        });
-    } else {
-        return next(new ErrorHandler("No PR member is logged in currently" , 400));
-    }
-
-    res.status(200).json({
-        success: true,
-        message: "Logged out successfully",
-    });
-});
-
 exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
     let { Competition_Name, Institute_Name, Team_Name, L_Name, L_Contact, L_Email, L_CNIC, Members } = req.body;
     const PR_Id = req.user.member.id;
