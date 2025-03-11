@@ -15,6 +15,20 @@ exports.CreatePRMember = catchAsyncError(async (req, res, next) => {
     const { Username } = req.body;
     const Password = Math.random().toString(36).slice(-8);
 
+    if (!Username) {
+        return next(new ErrorHandler("Please enter the required details" , 400));
+    }
+
+    const member = await PRModel.findOne({
+        where: {
+            Username
+        }
+    });
+
+    if (member) {
+        return next(new ErrorHandler("Another PR member with the same username already exists." , 400));
+    }
+
     const PRMember = await PRModel.create({
         Username,
         Password
@@ -51,8 +65,25 @@ exports.PRLogin = catchAsyncError(async (req, res, next) => {
     TokenCreation(PRMember, 201, res);
 });
 
+exports.PRLogout = catchAsyncError(async (req, res, next) => {
+    if (req.user.member) {
+        res.cookie("token", null, {
+            expires: new Date(0),
+            httpOnly: true,
+        });
+    } else {
+        return next(new ErrorHandler("No PR member is logged in currently" , 400));
+    }
+
+    res.status(200).json({
+        success: true,
+        message: "Logged out successfully",
+    });
+});
+
 exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
-    let { Competition_Name, Institute_Name, Team_Name, L_Name, L_Contact, L_Email, L_CNIC, Members, PR_Id } = req.body;
+    let { Competition_Name, Institute_Name, Team_Name, L_Name, L_Contact, L_Email, L_CNIC, Members } = req.body;
+    const PR_Id = req.user.member.id;
 
     console.log(Team_Name, Competition_Name, Institute_Name, L_Name, L_Contact, L_Email, L_CNIC, Members, PR_Id);
 
@@ -67,7 +98,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         }
     }
 
-    if (!Competition_Name || !Institute_Name || !Team_Name || !L_Name || !L_Contact || !L_Email || !L_CNIC || !PR_Id) {
+    if (!Competition_Name || !Institute_Name || !Team_Name || !L_Name || !L_Contact || !L_Email || !L_CNIC) {
         console.log("Missing required fields");
         console.log("Competition_Name:", Competition_Name);
         console.log("Institute_Name:", Institute_Name);
@@ -173,10 +204,9 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         L_Contact,
         L_Email,
         L_CNIC,
-        Members
+        Members,
+        BA_Code: PR_Id
     };
-
-    teamData.BA_Code = PR_Id;
 
     const PRMember = await PRModel.findByPk(PR_Id);
     PRMember.Amount_Owed += competition.Entry_Fee;
@@ -194,12 +224,11 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
 });
 
 exports.GetAllRegisteredTeams = catchAsyncError(async (req, res, next) => {
-    const { PR_Id } = req.body;
+    const member = req.user.member;
+    const PR_Id = member.id;
 
-    const PRMember = await PRModel.findByPk(PR_Id);
-
-    if (!PRMember) {
-        return next(new ErrorHandler("Invalid PR Member Id", 404));
+    if (!member || !PR_Id) {
+        return next(new ErrorHandler("PR member not found", 404));
     }
 
     const Teams = await TeamModel.findAll({
@@ -279,16 +308,11 @@ exports.PRMemberAmountReport = catchAsyncError(async (req, res, next) => {
 });
 
 exports.MyAmountReport = catchAsyncError(async (req, res, next) => {
-    const { PR_Id } = req.body;
+    const member = req.user.member;
+    const PR_Id = member.id;
 
-    if (!PR_Id) {
-        return next(new ErrorHandler("Please enter the required fields.", 400));
-    }
-
-    const member = await PRModel.findByPk(PR_Id);
-
-    if (!member) {
-        return next(new ErrorHandler("PR member does not exist", 400));
+    if (!member || !PR_Id) {
+        return next(new ErrorHandler("PR member not found", 404));
     }
 
     const Teams = await TeamModel.findAll({
@@ -317,4 +341,4 @@ exports.MyAmountReport = catchAsyncError(async (req, res, next) => {
         message: "My Amount Report",
         member
     });
-})
+});

@@ -61,7 +61,6 @@ PR.prototype.comparePassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.Password);
 };
 
-
 PR.prototype.getResetPasswordToken = function () {
     const resetToken = crypto.randomBytes(20).toString("hex");
     this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
