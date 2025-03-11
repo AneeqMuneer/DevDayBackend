@@ -2,7 +2,6 @@ const ErrorHandler = require("../Utils/errorHandler");
 const catchAsyncError = require("../Middleware/asyncError");
 const { Op, Sequelize } = require("sequelize");
 const TokenCreation = require("../Utils/tokenCreation.js");
-const bcrypt = require('bcrypt');
 
 const { SendTeamRegisterMail } = require("../Utils/teamUtils.js")
 
@@ -15,12 +14,12 @@ const Team = require("../Model/teamModel");
 exports.CreatePRMember = catchAsyncError(async (req, res, next) => {
     const { Username } = req.body;
     const Password = Math.random().toString(36).slice(-8);
-    
+
     const PRMember = await PRModel.create({
         Username,
         Password
     });
-    
+
     console.log(Password);
 
     res.status(201).json({
@@ -55,7 +54,7 @@ exports.PRLogin = catchAsyncError(async (req, res, next) => {
 exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
     let { Competition_Name, Institute_Name, Team_Name, L_Name, L_Contact, L_Email, L_CNIC, Members, PR_Id } = req.body;
 
-    console.log(Team_Name , Competition_Name , Institute_Name , L_Name , L_Contact , L_Email , L_CNIC , Members , PR_Id);
+    console.log(Team_Name, Competition_Name, Institute_Name, L_Name, L_Contact, L_Email, L_CNIC, Members, PR_Id);
 
     if (typeof Members === 'string' && Members.trim() !== '') {
         try {
@@ -278,3 +277,44 @@ exports.PRMemberAmountReport = catchAsyncError(async (req, res, next) => {
         PRMembers
     });
 });
+
+exports.MyAmountReport = catchAsyncError(async (req, res, next) => {
+    const { PR_Id } = req.body;
+
+    if (!PR_Id) {
+        return next(new ErrorHandler("Please enter the required fields.", 400));
+    }
+
+    const member = await PRModel.findByPk(PR_Id);
+
+    if (!member) {
+        return next(new ErrorHandler("PR member does not exist", 400));
+    }
+
+    const Teams = await TeamModel.findAll({
+        where: {
+            BA_Code: member.id
+        }
+    });
+
+    Total_Amount = 0;
+    for (let team of Teams) {
+        const competition = await CompetitionModel.findOne({
+            where: {
+                Competition_Name: team.Competition_Name
+            }
+        });
+
+        if (competition) {
+            Total_Amount += competition.Entry_Fee;
+        }
+    }
+
+    member.setDataValue("Total_Amount", Total_Amount);
+
+    res.status(200).json({
+        success: true,
+        message: "My Amount Report",
+        member
+    });
+})
