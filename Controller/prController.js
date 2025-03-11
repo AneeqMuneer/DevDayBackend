@@ -8,8 +8,6 @@ const { SendTeamRegisterMail } = require("../Utils/teamUtils.js")
 const PRModel = require("../Model/prModel");
 const TeamModel = require("../Model/teamModel");
 const CompetitionModel = require("../Model/competitionModel");
-const PR = require("../Model/prModel");
-const Team = require("../Model/teamModel");
 
 exports.CreatePRMember = catchAsyncError(async (req, res, next) => {
     const { Username } = req.body;
@@ -46,16 +44,19 @@ exports.CreatePRMember = catchAsyncError(async (req, res, next) => {
 exports.PRLogin = catchAsyncError(async (req, res, next) => {
     const { Username, Password } = req.body;
 
+    console.log(req.body);
+
     const PRMember = await PRModel.findOne({
         where: {
             Username: Username
         }
     });
-
+    
     if (!PRMember) {
         return next(new ErrorHandler("Invalid Username or Password", 401));
     }
-
+    
+    console.log(PRMember.id);
     const isMatch = await PRMember.comparePassword(Password);
 
     if (!isMatch) {

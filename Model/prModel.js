@@ -38,13 +38,13 @@ const PR = sequelize.define(
     hooks: {
         beforeCreate: async (pr) => {
             if (pr.Password) {
-                const salt = bcrypt.genSaltSync(10, "a");
+                const salt = bcrypt.genSaltSync(10);
                 pr.Password = bcrypt.hashSync(pr.Password, salt);
             }
         },
         beforeUpdate: async (pr) => {
             if (pr.Password) {
-                const salt = bcrypt.genSaltSync(10, "a");
+                const salt = bcrypt.genSaltSync(10);
                 pr.Password = bcrypt.hashSync(pr.Password, salt);
             }
         }

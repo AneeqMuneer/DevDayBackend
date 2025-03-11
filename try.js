@@ -1,11 +1,19 @@
 const bcrypt = require('bcrypt');
 
-const enteredPassword = "0mdhprhs";  // Replace with the actual password you entered
-const storedHash = "$2a$10$HpsiLWmgWB2YlIYS0ExY8OByXDENwQBHhI8pSlWonzBJYMBpk3STG"; // Your stored password
+const enteredPassword = "fmv6asgb";  // Replace with the actual password you entered
+const storedHash = "$2a$10$lLeAh3tqPl/VYzmiuAMvAekUGGQzm2NLwA0xhksYnkTtWrSbaP45q"; // Your stored password
 
-console.log()
+const func = async () => {
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = await bcrypt.hash(enteredPassword, salt);
 
-bcrypt.compare(enteredPassword, storedHash, (err, result) => {
-    console.log("Password Matches?", result);
-    console.log("Error (if any):", err);
-});
+    
+    const result = await bcrypt.compare(enteredPassword, this.Password , );
+    
+    console.log("hellp")
+
+    console.log(enteredPassword);
+    console.log(hashedPassword);
+    console.log(result);
+}
+func();
