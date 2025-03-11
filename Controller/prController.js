@@ -239,7 +239,7 @@ exports.GetAllRegisteredTeams = catchAsyncError(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        message: `All Registered Teams -> ${PRMember.Username}`,
+        message: `All Registered Teams -> ${member.Username}`,
         Teams
     });
 });
