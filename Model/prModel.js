@@ -4,6 +4,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
+const TeamModel = require("./teamModel.js");
+
 const PR = sequelize.define(
     "PR",
     {
@@ -41,6 +43,16 @@ const PR = sequelize.define(
                 const salt = bcrypt.genSaltSync(10);
                 pr.Password = bcrypt.hashSync(pr.Password, salt);
             }
+        },
+        beforeUpdate: async (pr) => {
+            const Teams = await TeamModel.findAll({
+                where: {
+                    BA_Code: pr.id
+                }
+            });
+
+            pr.Team_Registered_Count = Teams.length;
+            await pr.save();
         }
     }
 });

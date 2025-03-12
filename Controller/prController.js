@@ -195,7 +195,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
 
     const PRMember = await PRModel.findByPk(PR_Id);
     PRMember.Amount_Owed += competition.Entry_Fee;
-    pr.Team_Registered_Count = pr.Team_Registered_Count + 1;
+    PRMember.Team_Registered_Count = PRMember.Team_Registered_Count + 1;
     await PRMember.save();
 
     const team = await TeamModel.create(teamData);
