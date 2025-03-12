@@ -14,7 +14,7 @@ exports.CreatePRMember = catchAsyncError(async (req, res, next) => {
     const Password = Math.random().toString(36).slice(-8);
 
     if (!Username) {
-        return next(new ErrorHandler("Please enter the required details" , 400));
+        return next(new ErrorHandler("Please enter the required details", 400));
     }
 
     const member = await PRModel.findOne({
@@ -24,7 +24,7 @@ exports.CreatePRMember = catchAsyncError(async (req, res, next) => {
     });
 
     if (member) {
-        return next(new ErrorHandler("Another PR member with the same username already exists." , 400));
+        return next(new ErrorHandler("Another PR member with the same username already exists.", 400));
     }
 
     const PRMember = await PRModel.create({
@@ -51,11 +51,11 @@ exports.PRLogin = catchAsyncError(async (req, res, next) => {
             Username: Username
         }
     });
-    
+
     if (!PRMember) {
         return next(new ErrorHandler("Invalid Username or Password", 401));
     }
-    
+
     console.log(PRMember.id);
     const isMatch = await PRMember.comparePassword(Password);
 
@@ -195,6 +195,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
 
     const PRMember = await PRModel.findByPk(PR_Id);
     PRMember.Amount_Owed += competition.Entry_Fee;
+    pr.Team_Registered_Count = pr.Team_Registered_Count + 1;
     await PRMember.save();
 
     const team = await TeamModel.create(teamData);
@@ -240,6 +241,10 @@ exports.AdminAmountCollect = catchAsyncError(async (req, res, next) => {
 
     if (Collected_Amount > PRMember.Amount_Owed) {
         return next(new ErrorHandler("Amount Exceeds the Amount Owed", 400));
+    }
+
+    if (Collected_Amount < 0) {
+        return next(new ErrorHandler("Invalid amount to be calculated", 400));
     }
 
     PRMember.Amount_Submitted += Collected_Amount;
