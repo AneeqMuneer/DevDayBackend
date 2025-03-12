@@ -190,7 +190,8 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         L_Email,
         L_CNIC,
         Members,
-        BA_Code: PR_Id
+        BA_Code: PR_Id,
+        Payment_Verification_Status: true
     };
 
     const PRMember = await PRModel.findByPk(PR_Id);
