@@ -43,16 +43,6 @@ const PR = sequelize.define(
                 const salt = bcrypt.genSaltSync(10);
                 pr.Password = bcrypt.hashSync(pr.Password, salt);
             }
-        },
-        beforeUpdate: async (pr) => {
-            const Teams = await TeamModel.findAll({
-                where: {
-                    BA_Code: pr.id
-                }
-            });
-
-            pr.Team_Registered_Count = Teams.length;
-            await pr.save();
         }
     }
 });
