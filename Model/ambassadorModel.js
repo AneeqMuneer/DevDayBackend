@@ -78,12 +78,6 @@ const BrandAmbassador = sequelize.define('BrandAmbassador', {
                 const salt = bcrypt.genSaltSync(10, "a");
                 ambassador.Password = bcrypt.hashSync(ambassador.Password, salt);
             }
-        },
-        beforeUpdate: async (ambassador) => {
-            if (ambassador.Password) {
-                const salt = bcrypt.genSaltSync(10, "a");
-                ambassador.Password = bcrypt.hashSync(ambassador.Password, salt);
-            }
         }
     }
 });

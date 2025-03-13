@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const BrandAmbassador = require("../Model/ambassadorModel.js");
 
 exports.VerifyAmbassador = asyncError(async (req, res, next) => {
-    const token = req.header("authorization");
+    let token = req.header("Authorization").replace("Bearer ", "");
 
     if (!token) {
         return next(

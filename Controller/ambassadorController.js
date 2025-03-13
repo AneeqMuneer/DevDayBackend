@@ -49,16 +49,6 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Please fill the remaining fields.", 400));
     }
 
-    const similarAmbassador = await AmbassadorModel.findAll({
-        where: {
-            [Op.or]: [{ Email }, { CNIC }, { Contact }]
-        }
-    });
-
-    if (similarAmbassador.length > 0) {
-        return next(new ErrorHandler("Ambassador already exists.", 400));
-    }
-
     let Code;
     do {
         Code = CreateCode(Name, Institution);
@@ -119,6 +109,83 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
     }
 });
 
+exports.GetAllBARegistration = catchAsyncError(async (req, res, next) => {
+    const { code } = req.query;
+
+    if (!code) {
+        return next(new ErrorHandler("Please provide a Code", 400));
+    }
+    
+    const ambassador = await AmbassadorModel.findOne({ where: { Code: code } });
+    
+    if (!ambassador) {
+        return next(new ErrorHandler("Ambassador not found", 404));
+    }
+    
+    const teams = await TeamModel.findAll({ where: { BA_Id: ambassador.id } });
+    
+    res.status(200).json({
+        success: true,
+        teams
+    });
+});
+
+exports.Leaderboard = catchAsyncError(async (req, res, next) => {
+    const teams = await TeamModel.findAll({
+        attributes: { exclude: ['Password', 'createdAt', 'updatedAt'] }
+    });
+    
+    res.status(200).json({
+        success: true,
+        count: teams.length,
+        teams
+    });
+});
+
+exports.ChangeOldPassword = catchAsyncError(async (req, res, next) => {
+    const { id, OldPassword } = req.body;
+    
+    if (!OldPassword || !id) {
+        return next(new ErrorHandler("Please provide the required details", 400));
+    }
+    
+    const ambassador = await AmbassadorModel.findByPk(id);
+    
+    if (!ambassador) {
+        return next(new ErrorHandler("Ambassador not found", 404));
+    }
+
+    const isPasswordMatched = await ambassador.comparePassword(OldPassword);
+    
+    if (!isPasswordMatched) {
+        return next(new ErrorHandler("Old Password is incorrect", 400));
+    }
+
+    req.body.ambassador = ambassador;
+
+    return next();
+});
+
+exports.UpdatePassword = catchAsyncError(async (req, res, next) => {
+    const { ambassador, NewPassword } = req.body;
+    
+    if (!ambassador) {
+        return next(new ErrorHandler("Ambassador not found", 400));
+    }
+    
+    if (!NewPassword) {
+        return next(new ErrorHandler("Please provide a new password", 400));
+    }
+    
+    ambassador.Password = NewPassword;
+    await ambassador.save();
+    
+    res.status(200).json({
+        success: true,
+        message: "Password updated successfully"
+    });
+});
+
 exports.GetAllAmbassador = catchAsyncError(async (req, res, next) => {
     const ambassadors = await AmbassadorModel.findAll({
         attributes: { exclude: ['Password', 'createdAt', 'updatedAt'] } // Exclude password from the response
@@ -176,83 +243,6 @@ exports.GetAmbassadorByCode = catchAsyncError(async (req, res, next) => {
     });
 });
 
-exports.GetAllBARegistration = catchAsyncError(async (req, res, next) => {
-    const { code } = req.query;
-
-    if (!code) {
-        return next(new ErrorHandler("Please provide a Code", 400));
-    }
-
-    const ambassador = await AmbassadorModel.findOne({ where: { Code: code } });
-
-    if (!ambassador) {
-        return next(new ErrorHandler("Ambassador not found", 404));
-    }
-
-    const teams = await TeamModel.findAll({ where: { BA_Id: ambassador.id } });
-
-    res.status(200).json({
-        success: true,
-        teams
-    });
-});
-
-exports.Leaderboard = catchAsyncError(async (req, res, next) => {
-    const teams = await TeamModel.findAll({
-        attributes: { exclude: ['Password', 'createdAt', 'updatedAt'] }
-    });
-
-    res.status(200).json({
-        success: true,
-        count: teams.length,
-        teams
-    });
-});
-
-exports.ChangeOldPassword = catchAsyncError(async (req, res, next) => {
-    const { id, OldPassword } = req.body;
-
-    if (!OldPassword || !id) {
-        return next(new ErrorHandler("Please provide the required details", 400));
-    }
-
-    const ambassador = await AmbassadorModel.findByPk(id);
-
-    if (!ambassador) {
-        return next(new ErrorHandler("Ambassador not found", 404));
-    }
-
-    const isPasswordMatched = await ambassador.comparePassword(OldPassword);
-
-    if (!isPasswordMatched) {
-        return next(new ErrorHandler("Old Password is incorrect", 400));
-    }
-
-    req.body.ambassador = ambassador;
-
-    return next();
-});
-
-exports.UpdatePassword = catchAsyncError(async (req, res, next) => {
-    const { ambassador, NewPassword } = req.body;
-
-    if (!ambassador) {
-        return next(new ErrorHandler("Ambassador not found", 400));
-    }
-
-    if (!NewPassword) {
-        return next(new ErrorHandler("Please provide a new password", 400));
-    }
-
-    ambassador.Password = NewPassword;
-    await ambassador.save();
-
-    res.status(200).json({
-        success: true,
-        message: "Password updated successfully"
-    });
-});
-
 exports.ApproveBA = catchAsyncError(async (req, res, next) => {
     const { id } = req.body;
 
@@ -284,3 +274,9 @@ exports.ApproveBA = catchAsyncError(async (req, res, next) => {
     }
 
 });
+
+// mail for approve
+// mail for password
+// approve relevant BA
+// remove unnecessary ones
+// send passwords

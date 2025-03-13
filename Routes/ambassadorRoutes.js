@@ -22,12 +22,14 @@ const handleMulterErrors = (req, res, next) => {
 
 router.route("/signup").post(handleMulterErrors, SignUp);
 router.route("/login").post(Login);
-router.route("/getallambassador").get(VerifyAmbassador , GetAllAmbassador);
-router.route("/getambassadorbycode").get(VerifyAmbassador , GetAmbassadorByCode);
+
 router.route("/GetAllBARegistration").get(VerifyAmbassador , GetAllBARegistration);
-router.route("/leaderboard").get(VerifyAmbassador , Leaderboard);
 router.route("/UpdatePassword").post(VerifyAmbassador , ChangeOldPassword , UpdatePassword);
-router.route("/ApproveBA").post(VerifyAmbassador , ApproveBA);
-router.route("/:id").get(VerifyAmbassador , GetAmbassadorById);
+router.route("/leaderboard").get(Leaderboard);
+
+router.route("/ApproveBA").post(ApproveBA);
+router.route("/getallambassador").get(GetAllAmbassador);
+router.route("/getambassadorbycode").get(GetAmbassadorByCode);
+router.route("/:id").get(GetAmbassadorById);
 
 module.exports = router;
