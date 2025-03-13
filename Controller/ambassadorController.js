@@ -122,10 +122,11 @@ exports.GetAllBARegistration = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Ambassador not found", 404));
     }
     
-    const teams = await TeamModel.findAll({ where: { BA_Id: ambassador.id } });
+    const teams = await TeamModel.findAll({ where: { BA_Code: code } });
     
     res.status(200).json({
         success: true,
+        count: teams.length,
         teams
     });
 });
@@ -143,7 +144,8 @@ exports.Leaderboard = catchAsyncError(async (req, res, next) => {
 });
 
 exports.ChangeOldPassword = catchAsyncError(async (req, res, next) => {
-    const { id, OldPassword } = req.body;
+    const { OldPassword } = req.body;
+    const id = req.user.Ambassador.id;
     
     if (!OldPassword || !id) {
         return next(new ErrorHandler("Please provide the required details", 400));
