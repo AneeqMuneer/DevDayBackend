@@ -122,32 +122,52 @@ exports.GetAllBARegistration = catchAsyncError(async (req, res, next) => {
     if (!ambassador) {
         return next(new ErrorHandler("Ambassador not found", 404));
     }
-    
-    // Get all teams grouped by BA_Code with count
-    const allBARegistrations = await TeamModel.findAll({
-        attributes: ['BA_Code', [sequelize.fn('COUNT', sequelize.col('id')), 'registrationCount']],
+
+    // Get all BAs
+    const ambassadors = await AmbassadorModel.findAll({
+        attributes: ['Code'],
+        raw: true
+    });
+
+    // Get all team counts
+    const teamCounts = await TeamModel.findAll({
+        attributes: [
+            'BA_Code',
+            [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+        ],
         group: ['BA_Code'],
         raw: true
     });
-    
-    // Sort BAs by registration count in descending order
-    const sortedBAs = allBARegistrations.sort((a, b) => b.registrationCount - a.registrationCount);
-    
-    // Calculate dense rank (same rank for ties, next rank skips accordingly)
+
+    // Create a map of BA_Code to team count
+    const countMap = new Map(teamCounts.map(t => [t.BA_Code, parseInt(t.count)]));
+
+    // Add referral counts to ambassadors
+    const ambassadorsWithCounts = ambassadors.map(ba => ({
+        ...ba,
+        referralCount: countMap.get(ba.Code) || 0
+    }));
+
+    // Sort by referral count in descending order
+    const sortedBAs = ambassadorsWithCounts.sort((a, b) => b.referralCount - a.referralCount);
+
+    // Calculate dense ranking
     let currentRank = 1;
-    let currentCount = sortedBAs[0]?.registrationCount || 0;
-    const rankMap = new Map();
+    let currentCount = sortedBAs[0]?.referralCount || 0;
+    let rank = 1;
     
-    sortedBAs.forEach((ba, index) => {
-        if (ba.registrationCount < currentCount) {
-            currentRank = index + 1;
-            currentCount = ba.registrationCount;
+    // Find rank for the requested BA
+    for (const ba of sortedBAs) {
+        if (ba.referralCount < currentCount) {
+            currentRank = rank;
+            currentCount = ba.referralCount;
         }
-        rankMap.set(ba.BA_Code, currentRank);
-    });
-    
-    // Get rank for the requested BA
-    const rank = rankMap.get(code) || sortedBAs.length + 1;
+        if (ba.Code === code) {
+            rank = currentRank;
+            break;
+        }
+        rank++;
+    }
     
     // Get teams for the requested BA
     const teams = await TeamModel.findAll({ where: { BA_Code: code } });
@@ -161,7 +181,7 @@ exports.GetAllBARegistration = catchAsyncError(async (req, res, next) => {
 });
 
 exports.Leaderboard = catchAsyncError(async (req, res, next) => {
-    // Get all BAs (regardless of approval status)
+    // Get all BAs
     const ambassadors = await AmbassadorModel.findAll({
         attributes: ['Code', 'Name', 'ProfilePhoto'],
         raw: true
@@ -192,12 +212,14 @@ exports.Leaderboard = catchAsyncError(async (req, res, next) => {
     // Calculate dense ranking
     let currentRank = 1;
     let currentCount = sortedBAs[0]?.referralCount || 0;
+    let rank = 1;
     
-    const rankedBAs = sortedBAs.map((ba, index) => {
+    const rankedBAs = sortedBAs.map(ba => {
         if (ba.referralCount < currentCount) {
-            currentRank = index + 1;
+            currentRank = rank;
             currentCount = ba.referralCount;
         }
+        rank++;
 
         // Only include ProfilePhoto for top 3
         const isTop3 = currentRank <= 3;
