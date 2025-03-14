@@ -40,7 +40,7 @@ exports.Login = catchAsyncError(async (req, res, next) => {
         where: { id: Ambassador.id }
     });
 
-    TokenCreation(data, 201, res);
+    TokenCreation(data, 200, res);
 });
 
 exports.SignUp = catchAsyncError(async (req, res, next) => {
