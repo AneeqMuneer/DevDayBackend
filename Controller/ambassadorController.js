@@ -180,7 +180,7 @@ exports.UpdatePassword = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Please provide a new password", 400));
     }
     
-    ambassador.Password = NewPassword;
+    ambassador.Password = await bcrypt.hash(NewPassword, 10);
     await ambassador.save();
     
     res.status(200).json({
@@ -295,5 +295,25 @@ exports.ApproveBAs = catchAsyncError(async (req, res, next) => {
         success: true,
         message: `${updatedAmbassadors.length} ambassador(s) approved successfully`,
         approvedAmbassadors: updatedAmbassadors.map(a => ({ id: a.id, name: a.Name, code: a.Code }))
+    });
+});
+
+// Not finished
+exports.DeleteBAs = catchAsyncError(async (req, res, next) => {
+    const { UnnecessaryMembers } = req.body;
+
+    if (!UnnecessaryMembers || !Array.isArray(UnnecessaryMembers) || UnnecessaryMembers.length === 0) {
+        return next(new ErrorHandler("UnnecessaryMembers must be a non-empty array of valid IDs." , 400));
+    }
+
+    const result = await AmbassadorModel.destroy({
+        where: {
+            id: { [Op.notIn]: UnnecessaryMembers }
+        }
+    });
+
+    res.status(200).json({
+        success: true,
+        message: `${result} Brand Ambassador(s) deleted successfully.`,
     });
 });
