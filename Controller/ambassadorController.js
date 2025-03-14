@@ -170,11 +170,22 @@ exports.GetAllBARegistration = catchAsyncError(async (req, res, next) => {
     }
     
     // Get teams for the requested BA
-    const teams = await TeamModel.findAll({ where: { BA_Code: code } });
+    const teams = await TeamModel.findAll({ 
+        where: { BA_Code: code }
+    });
+
+    // Get count of approved payment registrations
+    const approvedPaymentCount = await TeamModel.count({
+        where: { 
+            BA_Code: code,
+            Payment_Verification_Status: true
+        }
+    });
     
     res.status(200).json({
         success: true,
         count: teams.length,
+        approvedPaymentCount,
         rank,
         teams
     });
