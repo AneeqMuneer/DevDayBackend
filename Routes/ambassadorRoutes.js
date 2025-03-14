@@ -1,5 +1,5 @@
 const express = require("express");
-const { Login , SignUp , GetAllAmbassador , GetAllBARegistration , GetAmbassadorById , GetAmbassadorByCode , Leaderboard , ChangeOldPassword , UpdatePassword , ApproveBAs , DeleteBAs } = require("../Controller/ambassadorController");
+const { Login , SignUp , GetAllAmbassador , GetAllBARegistration , GetAmbassadorById , GetAmbassadorByCode , Leaderboard , ChangePassword , ApproveBAs , DeleteBAs } = require("../Controller/ambassadorController");
 const { VerifyAmbassador } = require("../Middleware/ambassadorAuth");
 const upload = require("../Middleware/multer.js");
 const ErrorHandler = require("../Utils/errorHandler");
@@ -24,7 +24,7 @@ router.route("/signup").post(handleMulterErrors, SignUp);
 router.route("/login").post(Login);
 
 router.route("/GetAllBARegistration").get(VerifyAmbassador , GetAllBARegistration);
-router.route("/UpdatePassword").post(VerifyAmbassador , ChangeOldPassword , UpdatePassword);
+router.route("/ChangePassword").post(VerifyAmbassador, ChangePassword);
 router.route("/leaderboard").get(Leaderboard);
 
 router.route("/ApproveBAs").post(ApproveBAs);
