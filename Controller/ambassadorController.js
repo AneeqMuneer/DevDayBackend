@@ -7,7 +7,7 @@ const { Op } = require("sequelize");
 const AmbassadorModel = require("../Model/ambassadorModel");
 const TeamModel = require("../Model/teamModel");9
 
-const { SendEmail , CreateCode , GenerateRandomPassword } = require("../Utils/ambassadorUtils");
+const { SendRegistrationEmail , CreateCode , GenerateRandomPassword , SendApprovePasswordEmail } = require("../Utils/ambassadorUtils");
 
 exports.Login = catchAsyncError(async (req, res, next) => {
     const { Email, Password } = req.body;
@@ -97,7 +97,7 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
             ProfilePhoto: profilePhotoUrl
         });
 
-        await SendEmail(ambassador.Email, ambassador.Name);
+        await SendRegistrationEmail(ambassador.Email, ambassador.Name);
 
         res.status(200).json({
             success: true,
@@ -245,39 +245,48 @@ exports.GetAmbassadorByCode = catchAsyncError(async (req, res, next) => {
     });
 });
 
-exports.ApproveBA = catchAsyncError(async (req, res, next) => {
-    const { id } = req.body;
+exports.ApproveBAs = catchAsyncError(async (req, res, next) => {
+    const { ids } = req.body;
 
-    if (!id) {
-        return next(new ErrorHandler("Please provide an ambassador ID", 400));
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return next(new ErrorHandler("Please provide an array of ambassador IDs", 400));
     }
 
-    const ambassador = await AmbassadorModel.findByPk(id);
+    const ambassadors = await AmbassadorModel.findAll({
+        where: {
+            id: ids
+        }
+    });
 
-    if (!ambassador) {
-        return next(new ErrorHandler("Ambassador not found", 404));
+    if (ambassadors.length === 0) {
+        return next(new ErrorHandler("No ambassadors found with the provided IDs", 404));
     }
 
-    if (ambassador.Approval) {
-        res.status(200).json({
-            success: true,
-            message: "Ambassador is already approved"
-        });
-    } else {
-        ambassador.Approval = true;
-        await ambassador.save();
-    
-        await SendEmail(ambassador.Email, ambassador.Name);
-    
-        res.status(200).json({
-            success: true,
-            message: "Ambassador approved successfully"
-        });
+    if (ambassadors.length <= ids.length) {
+        return next(new ErrorHandler("Some ambassadors were not found" , 400));
     }
 
+    const updatedAmbassadors = [];
+    const emailPromises = [];
+
+    for (const ambassador of ambassadors) {
+        if (!ambassador.Approval) {
+            ambassador.Approval = true;
+            await ambassador.save();
+            updatedAmbassadors.push(ambassador);
+            emailPromises.push(SendEmail(ambassador.Email, ambassador.Name));
+        }
+    }
+
+    await Promise.all(emailPromises);
+
+    res.status(200).json({
+        success: true,
+        message: `${updatedAmbassadors.length} ambassador(s) approved successfully`,
+        approvedAmbassadors: updatedAmbassadors.map(a => ({ id: a.id, name: a.Name }))
+    });
 });
 
-// mail for approve
 // mail for password
 // approve relevant BA
 // remove unnecessary ones
