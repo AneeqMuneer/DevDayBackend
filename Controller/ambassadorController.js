@@ -2,7 +2,7 @@ const ErrorHandler = require("../Utils/errorHandler");
 const catchAsyncError = require("../Middleware/asyncError");
 const TokenCreation = require("../Utils/tokenCreation");
 const cloudinary = require("../config/cloudinary.js");
-const { Op } = require("sequelize");
+const { Op, Sequelize: sequelize } = require("sequelize");
 const bcrypt = require("bcrypt");
 
 const AmbassadorModel = require("../Model/ambassadorModel");
@@ -123,24 +123,97 @@ exports.GetAllBARegistration = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Ambassador not found", 404));
     }
     
+    // Get all teams grouped by BA_Code with count
+    const allBARegistrations = await TeamModel.findAll({
+        attributes: ['BA_Code', [sequelize.fn('COUNT', sequelize.col('id')), 'registrationCount']],
+        group: ['BA_Code'],
+        raw: true
+    });
+    
+    // Sort BAs by registration count in descending order
+    const sortedBAs = allBARegistrations.sort((a, b) => b.registrationCount - a.registrationCount);
+    
+    // Calculate dense rank (same rank for ties, next rank skips accordingly)
+    let currentRank = 1;
+    let currentCount = sortedBAs[0]?.registrationCount || 0;
+    const rankMap = new Map();
+    
+    sortedBAs.forEach((ba, index) => {
+        if (ba.registrationCount < currentCount) {
+            currentRank = index + 1;
+            currentCount = ba.registrationCount;
+        }
+        rankMap.set(ba.BA_Code, currentRank);
+    });
+    
+    // Get rank for the requested BA
+    const rank = rankMap.get(code) || sortedBAs.length + 1;
+    
+    // Get teams for the requested BA
     const teams = await TeamModel.findAll({ where: { BA_Code: code } });
     
     res.status(200).json({
         success: true,
         count: teams.length,
+        rank,
         teams
     });
 });
 
 exports.Leaderboard = catchAsyncError(async (req, res, next) => {
-    const teams = await TeamModel.findAll({
-        attributes: { exclude: ['Password', 'createdAt', 'updatedAt'] }
+    // Get all BAs (regardless of approval status)
+    const ambassadors = await AmbassadorModel.findAll({
+        attributes: ['Code', 'Name', 'ProfilePhoto'],
+        raw: true
     });
+
+    // Get all team counts
+    const teamCounts = await TeamModel.findAll({
+        attributes: [
+            'BA_Code',
+            [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+        ],
+        group: ['BA_Code'],
+        raw: true
+    });
+
+    // Create a map of BA_Code to team count
+    const countMap = new Map(teamCounts.map(t => [t.BA_Code, parseInt(t.count)]));
+
+    // Add referral counts to ambassadors
+    const ambassadorsWithCounts = ambassadors.map(ba => ({
+        ...ba,
+        referralCount: countMap.get(ba.Code) || 0
+    }));
+
+    // Sort by referral count in descending order
+    const sortedBAs = ambassadorsWithCounts.sort((a, b) => b.referralCount - a.referralCount);
+
+    // Calculate dense ranking
+    let currentRank = 1;
+    let currentCount = sortedBAs[0]?.referralCount || 0;
     
+    const rankedBAs = sortedBAs.map((ba, index) => {
+        if (ba.referralCount < currentCount) {
+            currentRank = index + 1;
+            currentCount = ba.referralCount;
+        }
+
+        // Only include ProfilePhoto for top 3
+        const isTop3 = currentRank <= 3;
+        return {
+            rank: currentRank,
+            code: ba.Code,
+            name: ba.Name,
+            referralCount: ba.referralCount,
+            ...(isTop3 && ba.ProfilePhoto ? { profilePhoto: ba.ProfilePhoto } : {})
+        };
+    });
+
     res.status(200).json({
         success: true,
-        count: teams.length,
-        teams
+        count: rankedBAs.length,
+        leaderboard: rankedBAs
     });
 });
 
