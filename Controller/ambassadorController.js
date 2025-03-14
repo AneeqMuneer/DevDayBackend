@@ -3,9 +3,10 @@ const catchAsyncError = require("../Middleware/asyncError");
 const TokenCreation = require("../Utils/tokenCreation");
 const cloudinary = require("../config/cloudinary.js");
 const { Op } = require("sequelize");
+const bcrypt = require("bcrypt");
 
 const AmbassadorModel = require("../Model/ambassadorModel");
-const TeamModel = require("../Model/teamModel");9
+const TeamModel = require("../Model/teamModel");
 
 const { SendRegistrationEmail , CreateCode , GenerateRandomPassword , SendApprovePasswordEmail } = require("../Utils/ambassadorUtils");
 
@@ -246,11 +247,13 @@ exports.GetAmbassadorByCode = catchAsyncError(async (req, res, next) => {
 });
 
 exports.ApproveBAs = catchAsyncError(async (req, res, next) => {
-    const { ids } = req.body;
+    const { SelectedMembers } = req.body;
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        return next(new ErrorHandler("Please provide an array of ambassador IDs", 400));
+    if (!SelectedMembers || !Array.isArray(SelectedMembers) || SelectedMembers.length === 0) {
+        return next(new ErrorHandler("Please fill the required fields", 400));
     }
+
+    const ids = SelectedMembers.map(member => member.id);
 
     const ambassadors = await AmbassadorModel.findAll({
         where: {
@@ -262,20 +265,28 @@ exports.ApproveBAs = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("No ambassadors found with the provided IDs", 404));
     }
 
-    if (ambassadors.length <= ids.length) {
-        return next(new ErrorHandler("Some ambassadors were not found" , 400));
+    if (ambassadors.length < SelectedMembers.length) {
+        return next(new ErrorHandler("Some ambassadors were not found", 400));
     }
 
     const updatedAmbassadors = [];
     const emailPromises = [];
 
     for (const ambassador of ambassadors) {
-        if (!ambassador.Approval) {
-            ambassador.Approval = true;
-            await ambassador.save();
-            updatedAmbassadors.push(ambassador);
-            emailPromises.push(SendEmail(ambassador.Email, ambassador.Name));
-        }
+        const selectedMember = SelectedMembers.find(member => member.id === ambassador.id);
+        const newCode = selectedMember.code;
+
+        ambassador.Approval = true;
+        ambassador.Code = newCode;
+        const pass = await GenerateRandomPassword();
+        ambassador.Password = await bcrypt.hash(pass, 10);
+
+        console.log(pass);
+
+        emailPromises.push(SendApprovePasswordEmail(ambassador.Email, ambassador.Name, newCode , pass));
+        await ambassador.save();
+
+        updatedAmbassadors.push(ambassador);
     }
 
     await Promise.all(emailPromises);
@@ -283,11 +294,6 @@ exports.ApproveBAs = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
         success: true,
         message: `${updatedAmbassadors.length} ambassador(s) approved successfully`,
-        approvedAmbassadors: updatedAmbassadors.map(a => ({ id: a.id, name: a.Name }))
+        approvedAmbassadors: updatedAmbassadors.map(a => ({ id: a.id, name: a.Name, code: a.Code }))
     });
 });
-
-// mail for password
-// approve relevant BA
-// remove unnecessary ones
-// send passwords
