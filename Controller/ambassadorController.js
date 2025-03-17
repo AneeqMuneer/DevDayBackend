@@ -85,7 +85,7 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
             return next(err);
         }
     }
-
+    
     try {
         const ambassador = await AmbassadorModel.create({
             Code,
@@ -106,6 +106,7 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
             ambassador
         });
     } catch (error) {
+        console.log(error);
         return next(new ErrorHandler(error.message || "Error creating ambassador", 500));
     }
 });
@@ -336,73 +337,22 @@ exports.GetAmbassadorByCode = catchAsyncError(async (req, res, next) => {
 });
 
 exports.ApproveBAs = catchAsyncError(async (req, res, next) => {
-    const { SelectedMembers } = req.body;
+    const Ambassadors = await AmbassadorModel.findAll();
 
-    if (!SelectedMembers || !Array.isArray(SelectedMembers) || SelectedMembers.length === 0) {
-        return next(new ErrorHandler("Please fill the required fields", 400));
-    }
-
-    const ids = SelectedMembers.map(member => member.id);
-
-    const ambassadors = await AmbassadorModel.findAll({
-        where: {
-            id: ids
-        }
-    });
-
-    if (ambassadors.length === 0) {
-        return next(new ErrorHandler("No ambassadors found with the provided IDs", 404));
-    }
-
-    if (ambassadors.length < SelectedMembers.length) {
-        return next(new ErrorHandler("Some ambassadors were not found", 400));
-    }
-
-    const updatedAmbassadors = [];
-    const emailPromises = [];
-
-    for (const ambassador of ambassadors) {
-        const selectedMember = SelectedMembers.find(member => member.id === ambassador.id);
-        const newCode = selectedMember.code;
-
+    for (const ambassador of Ambassadors) {
         ambassador.Approval = true;
-        ambassador.Code = newCode;
-        const pass = await GenerateRandomPassword();
-        ambassador.Password = await bcrypt.hash(pass, 10);
 
-        console.log(pass);
+        const randomPassword = await GenerateRandomPassword();
 
-        emailPromises.push(SendApprovePasswordEmail(ambassador.Email, ambassador.Name, newCode , pass));
+        ambassador.Password = await bcrypt.hash(randomPassword, 10);
+
         await ambassador.save();
 
-        updatedAmbassadors.push(ambassador);
+        await SendApprovePasswordEmail(ambassador.Email, ambassador.Name, ambassador.Code , randomPassword);
     }
-
-    await Promise.all(emailPromises);
 
     res.status(200).json({
         success: true,
-        message: `${updatedAmbassadors.length} ambassador(s) approved successfully`,
-        approvedAmbassadors: updatedAmbassadors.map(a => ({ id: a.id, name: a.Name, code: a.Code }))
-    });
-});
-
-// Not finished
-exports.DeleteBAs = catchAsyncError(async (req, res, next) => {
-    const { UnnecessaryMembers } = req.body;
-
-    if (!UnnecessaryMembers || !Array.isArray(UnnecessaryMembers) || UnnecessaryMembers.length === 0) {
-        return next(new ErrorHandler("UnnecessaryMembers must be a non-empty array of valid IDs." , 400));
-    }
-
-    const result = await AmbassadorModel.destroy({
-        where: {
-            id: { [Op.notIn]: UnnecessaryMembers }
-        }
-    });
-
-    res.status(200).json({
-        success: true,
-        message: `${result} Brand Ambassador(s) deleted successfully.`,
+        message: "All pending ambassadors have been approved and notified."
     });
 });
