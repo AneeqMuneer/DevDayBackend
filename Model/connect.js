@@ -3,9 +3,9 @@ const Team = require('./teamModel.js');
 const BrandAmbassador = require('./ambassadorModel.js');
 const JOCandidate = require('./JobOrbitModels/JOCandidateModel.js');
 const JOExperience = require('./JobOrbitModels/JOExperienceModel.js');
-const JOSkills = require('./JobOrbitModels/JOSkillsModel.js');
+const JOSkills = require('./JobOrbitModels/JOSkillModel.js');
 const JOEducation = require('./JobOrbitModels/JOEducationModel.js');
-const JOProjects = require('./JobOrbitModels/JOProjectsModel.js');
+const JOProjects = require('./JobOrbitModels/JOProjectModel.js');
 const Project = require('./projectModel.js');
 
 JOCandidate.hasMany(JOExperience, { foreignKey: 'CandidateId', onDelete: 'CASCADE' });

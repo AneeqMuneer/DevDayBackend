@@ -340,15 +340,17 @@ exports.ApproveBAs = catchAsyncError(async (req, res, next) => {
     const Ambassadors = await AmbassadorModel.findAll();
 
     for (const ambassador of Ambassadors) {
-        ambassador.Approval = true;
-
-        const randomPassword = await GenerateRandomPassword();
-
-        ambassador.Password = await bcrypt.hash(randomPassword, 10);
-
-        await ambassador.save();
-
-        await SendApprovePasswordEmail(ambassador.Email, ambassador.Name, ambassador.Code , randomPassword);
+        if (!ambassador.Approval) {
+            ambassador.Approval = true;
+    
+            const randomPassword = await GenerateRandomPassword();
+    
+            ambassador.Password = await bcrypt.hash(randomPassword, 10);
+    
+            await ambassador.save();
+    
+            await SendApprovePasswordEmail(ambassador.Email, ambassador.Name, ambassador.Code , randomPassword);
+        }
     }
 
     res.status(200).json({

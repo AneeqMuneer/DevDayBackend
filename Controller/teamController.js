@@ -40,7 +40,6 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Please fill the required fields.", 400));
     }
 
-    // Find competition by name
     const competition = await CompetitionModel.findOne({
         where: { Competition_Name }
     });
@@ -70,7 +69,8 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
             Contact: L_Contact,
             CNIC: L_CNIC
         },
-        ...Members];
+        ...Members
+    ];
 
     const emails = new Set();
     const contacts = new Set();
@@ -93,24 +93,23 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
         contacts.add(member.Contact);
         cnics.add(member.CNIC);
 
-        const emailArray = Array.from(emails);
-
         const existingTeam = await TeamModel.findOne({
             where: {
                 Competition_Name,
-                [Op.or]: emailArray.map((email, index) => ({
-                    [Op.or]: [
-                        { L_Email: email },
-                        Sequelize.literal(`
-                            EXISTS (
-                                SELECT 1 FROM jsonb_array_elements("Members"::jsonb) AS member 
-                                WHERE member->>'Email' = $${index + 1}
-                            )
-                        `)
-                    ]
-                }))
-            },
-            bind: emailArray
+                [Op.or]: [
+                    { L_Email: member.Email },
+                    { L_Contact: member.Contact },
+                    { L_CNIC: member.CNIC },
+                    Sequelize.literal(`
+                        EXISTS (
+                            SELECT 1 FROM jsonb_array_elements("Members"::jsonb) AS member 
+                            WHERE member->>'Email' = '${member.Email}' 
+                            OR member->>'Contact' = '${member.Contact}' 
+                            OR member->>'CNIC' = '${member.CNIC}'
+                        )
+                    `)
+                ]
+            }
         });
 
         if (existingTeam) {
