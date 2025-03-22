@@ -29,9 +29,9 @@ const JOEducation = sequelize.define('JOEducation', {
     },
     CompletionYear: {
         type: DataTypes.DATE,
-        allowNull: false,
+        allowNull: true,
     },
-    Grade: {
+    Score: {
         type: DataTypes.STRING,
         allowNull: false,
     },

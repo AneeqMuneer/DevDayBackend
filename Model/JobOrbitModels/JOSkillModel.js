@@ -11,10 +11,6 @@ const JOSkills = sequelize.define('JOSkills', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    Experience: {
-        type: DataTypes.ENUM('Beginner', 'Intermediate', 'Expert'),
-        allowNull: false,
-    },
     CandidateId: {
         type: DataTypes.UUID,
         allowNull: false,

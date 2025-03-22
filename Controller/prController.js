@@ -56,7 +56,6 @@ exports.PRLogin = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Invalid Username or Password", 401));
     }
 
-    console.log(PRMember.id);
     const isMatch = await PRMember.comparePassword(Password);
 
     if (!isMatch) {
