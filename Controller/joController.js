@@ -17,6 +17,10 @@ exports.CandidateSignup = catchAsyncError(async (req , res , next) => {
         return next(new ErrorHandler("Please fill the required fields" , 400));
     }
 
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/.test(Password)) {
+        return next(new ErrorHandler("Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)." , 400));
+    }
+
     const Candidate = await CandidateModel.create({
         FirstName,
         LastName,
@@ -56,12 +60,12 @@ exports.CandidateLogin = catchAsyncError(async (req , res , next) => {
         return next(new ErrorHandler("Invalid Username or Password", 401));
     }
 
-    TokenCreation(PRMember, 201, res);
+    TokenCreation(Candidate, 201, res);
 });
 
 exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
     const { Summary , DomainPreference , CVResume , Education , Experience , Certification , Project , Skill } = req.body;
-    const CandidateID = req.user.Candidate.id;
+    const CandidateId = req.user.Candidate.id;
 
     if (!Summary || !DomainPreference || !CVResume) {
         return next(new ErrorHandler("Please fill the required candidate fields" , 400));
@@ -69,7 +73,7 @@ exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
 
     const Candidate = await CandidateModel.findOne({
         where: {
-            CandidateID
+            id: CandidateId
         }
     });
 
@@ -89,12 +93,13 @@ exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
     let SkillCount = 0;
 
     for (let i = 0; i < Education.length; i++) {
-        if (!Education[i].DegreeTitle || !Education[i].Field || !Education[i].Institution || !Education[i].CompletionYear || !Score) {
+        console.log(Education[i]);
+        if (!Education[i].DegreeTitle || !Education[i].Field || !Education[i].Institution || !Education[i].CompletionYear || !Education[i].Score) {
             return next(new ErrorHandler("Please fill the required education fields" , 400));
         }
 
         const EducationDetail = await EducationModel.create({
-            CandidateID,
+            CandidateId,
             DegreeTitle: Education[i].DegreeTitle,
             Field: Education[i].Field,
             Institution: Education[i].Institution,
@@ -110,12 +115,13 @@ exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
     }
 
     for (let i = 0; i < Experience.length; i++) {
+        console.log(Experience[i]);
         if (!Experience[i].JobTitle || !Experience[i].Company || !Experience[i].StartDate || !Experience[i].EndDate || !Experience[i].Description) {
             return next(new ErrorHandler("Please fill the required experience fields" , 400));
         }
 
         const ExperienceDetail = await ExperienceModel.create({
-            CandidateID,
+            CandidateId,
             JobTitle: Experience[i].JobTitle,
             Company: Experience[i].Company,
             StartDate: Experience[i].StartDate,
@@ -131,12 +137,13 @@ exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
     }
 
     for (let i = 0; i < Certification.length; i++) {
+        console.log(Certification[i]);
         if (!Certification[i].CertificateName || !Certification[i].IssuingOrganization || !Certification[i].IssueDate || !Certification[i].CertificateLink) {
             return next(new ErrorHandler("Please fill the required certification fields" , 400));
         }
 
         const CertificationDetail = await CertificationModel.create({
-            CandidateID,
+            CandidateId,
             CertificateName: Certification[i].CertificateName,
             IssuingOrganization: Certification[i].IssuingOrganization,
             IssueDate: Certification[i].IssueDate,
@@ -151,12 +158,13 @@ exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
     }
 
     for (let i = 0; i < Project.length; i++) {
+        console.log(Project[i]);
         if (!Project[i].ProjectTitle || !Project[i].Description || !Project[i].URL) {
             return next(new ErrorHandler("Please fill the required project fields" , 400));
         }
 
         const ProjectDetail = await ProjectModel.create({
-            CandidateID,
+            CandidateId,
             ProjectTitle: Project[i].ProjectTitle,
             Description: Project[i].Description,
             URL: Project[i].URL
@@ -170,13 +178,14 @@ exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
     }
 
     for (let i = 0; i < Skill.length; i++) {
-        if (!Skill[i].SkillName) {
+        console.log(Skill[i]);
+        if (!Skill[i]) {
             return next(new ErrorHandler("Please fill the required skill fields" , 400));
         }
 
         const SkillDetail = await SkillModel.create({
-            CandidateID,
-            SkillName: Skill[i].SkillName
+            CandidateId,
+            SkillName: Skill[i]
         });
 
         if (!SkillDetail) {
@@ -202,7 +211,7 @@ exports.RetrieveUserDetail = catchAsyncError(async (req , res , next) => {
 
     const Candidate = await CandidateModel.findOne({
         where: {
-            CandidateId
+            id: CandidateId
         }
     });
 
@@ -242,8 +251,7 @@ exports.RetrieveUserDetail = catchAsyncError(async (req , res , next) => {
 
     res.status(200).json({
         success: true,
-        Candidate,
-        CandidateDetails: {
+        Candidate: {
             id: Candidate.id,
             FirstName: Candidate.FirstName,
             LastName: Candidate.LastName,

@@ -16,8 +16,14 @@ const JOEducation = sequelize.define('JOEducation', {
         primaryKey: true,
     },
     DegreeTitle: {
-        type: DataTypes.ENUM(DEGREE_CHOICES),
+        type: DataTypes.STRING,
         allowNull: false,
+        validate: {
+            isIn: {
+                args: [DEGREE_CHOICES],
+                msg: "Degree Title must be one of the following: " + DEGREE_CHOICES.join(", ")
+            }
+        }
     },
     Field: {
         type: DataTypes.STRING,
@@ -28,8 +34,21 @@ const JOEducation = sequelize.define('JOEducation', {
         allowNull: false,
     },
     CompletionYear: {
-        type: DataTypes.DATE,
+        type: DataTypes.INTEGER,
         allowNull: true,
+        validate: {
+            isInt: {
+                msg: "CompletionYear must be an integer"
+            },
+            min: {
+                args: [2000],
+                msg: "Completion Year must be greater than or equal to 2000"
+            },
+            max: {
+                args: [2030],
+                msg: "Completion Year must be lesser than or equal to 2030"
+            }
+        }
     },
     Score: {
         type: DataTypes.STRING,

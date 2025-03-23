@@ -19,8 +19,14 @@ const JOCandidate = sequelize.define('JOCandidate', {
         allowNull: false,
     },
     Gender: {
-        type: DataTypes.ENUM('Male', 'Female'),
+        type: DataTypes.STRING,
         allowNull: false,
+        validate: {
+            isIn: {
+                args: [['Male', 'Female']],
+                msg: "Gender must be either 'Male' or 'Female'",
+            },
+        },
     },
     Email: {
         type: DataTypes.STRING,
@@ -36,8 +42,8 @@ const JOCandidate = sequelize.define('JOCandidate', {
         unique: true,
         validate: {
             is: {
-                args: [/\d{11}$/],
-                msg: "Invalid contact number format",
+                args: [/^\d{11}$/],
+                msg: "Invalid contact number format. It must be exactly 11 digits.",
             },
         },
     },
