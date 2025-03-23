@@ -64,6 +64,10 @@ const JOCandidate = sequelize.define('JOCandidate', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    ProfileCreated: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    }
 }, {
     tableName: 'JOCandidates',
     timestamps: true,

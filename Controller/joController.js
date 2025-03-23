@@ -1,6 +1,7 @@
 const ErrorHandler = require("../Utils/errorHandler");
 const catchAsyncError = require("../Middleware/asyncError");
 const { Op, Sequelize } = require("sequelize");
+const { sequelize } = require("../Data/db");
 const TokenCreation = require("../Utils/tokenCreation.js");
 
 const CandidateModel = require("../Model/JobOrbitModels/JOCandidateModel.js");
@@ -63,142 +64,148 @@ exports.CandidateLogin = catchAsyncError(async (req , res , next) => {
     TokenCreation(Candidate, 201, res);
 });
 
-exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
-    const { Summary , DomainPreference , CVResume , Education , Experience , Certification , Project , Skill } = req.body;
+exports.AddUserDetail = catchAsyncError(async (req, res, next) => {
+    const { Summary, DomainPreference, CVResume, Education, Experience, Certification, Project, Skill } = req.body;
     const CandidateId = req.user.Candidate.id;
 
     if (!Summary || !DomainPreference || !CVResume) {
-        return next(new ErrorHandler("Please fill the required candidate fields" , 400));
+        return next(new ErrorHandler("Please fill the required candidate fields", 400));
     }
 
-    const Candidate = await CandidateModel.findOne({
-        where: {
-            id: CandidateId
-        }
-    });
+    const transaction = await sequelize.transaction();
 
-    if (!Candidate) {
-        return next(new ErrorHandler("Candidate not found" , 404));
-    }
-
-    Candidate.Summary = Summary;
-    Candidate.DomainPreference = DomainPreference;
-    Candidate.CVResume = CVResume;
-    await Candidate.save();
-
-    let EducationCount = 0;
-    let ExperienceCount = 0;
-    let CertificationCount = 0;
-    let ProjectCount = 0;
-    let SkillCount = 0;
-
-    for (let i = 0; i < Education.length; i++) {
-        if (!Education[i].DegreeTitle || !Education[i].Field || !Education[i].Institution || !Education[i].CompletionYear || !Education[i].Score) {
-            return next(new ErrorHandler("Please fill the required education fields" , 400));
-        }
-
-        const EducationDetail = await EducationModel.create({
-            CandidateId,
-            DegreeTitle: Education[i].DegreeTitle,
-            Field: Education[i].Field,
-            Institution: Education[i].Institution,
-            CompletionYear: Education[i].CompletionYear,
-            Score: Education[i].Score
+    try {
+        const Candidate = await CandidateModel.findOne({
+            where: { id: CandidateId },
+            transaction
         });
 
-        if (!EducationDetail) {
-            return next(new ErrorHandler("Education Detail not added" , 400));
+        if (!Candidate) {
+            throw new ErrorHandler("Candidate not found", 404);
         }
 
-        EducationCount++;
-    }
+        await Candidate.update(
+            { Summary, DomainPreference, CVResume, ProfileCreated: true },
+            { transaction }
+        );
 
-    for (let i = 0; i < Experience.length; i++) {
-        if (!Experience[i].JobTitle || !Experience[i].Company || !Experience[i].StartDate || !Experience[i].Description) {
-            return next(new ErrorHandler("Please fill the required experience fields" , 400));
+        let educationCount = 0,
+            experienceCount = 0,
+            certificationCount = 0,
+            projectCount = 0,
+            skillCount = 0;
+
+        if (Education.length > 0) {
+            for (let edu of Education) {
+                if (!edu.DegreeTitle || !edu.Field || !edu.Institution || !edu.CompletionYear || !edu.Score) {
+                    throw new ErrorHandler("Please fill all required education fields", 400);
+                }
+            }
+
+            const educationData = Education.map(e => ({
+                CandidateId,
+                DegreeTitle: e.DegreeTitle,
+                Field: e.Field,
+                Institution: e.Institution,
+                CompletionYear: e.CompletionYear,
+                Score: e.Score
+            }));
+
+            await EducationModel.bulkCreate(educationData, { transaction });
+            educationCount = Education.length;
         }
 
-        const ExperienceDetail = await ExperienceModel.create({
-            CandidateId,
-            JobTitle: Experience[i].JobTitle,
-            Company: Experience[i].Company,
-            StartDate: Experience[i].StartDate,
-            EndDate: Experience[i].EndDate || null,
-            Description: Experience[i].Description
+        if (Experience.length > 0) {
+            for (let exp of Experience) {
+                if (!exp.JobTitle || !exp.Company || !exp.StartDate || !exp.Description) {
+                    throw new ErrorHandler("Please fill all required experience fields", 400);
+                }
+            }
+
+            const experienceData = Experience.map(e => ({
+                CandidateId,
+                JobTitle: e.JobTitle,
+                Company: e.Company,
+                StartDate: e.StartDate,
+                EndDate: e.EndDate || null,
+                Description: e.Description
+            }));
+
+            await ExperienceModel.bulkCreate(experienceData, { transaction });
+            experienceCount = Experience.length;
+        }
+
+        if (Certification.length > 0) {
+            for (let cert of Certification) {
+                if (!cert.CertificateName || !cert.IssuingOrganization || !cert.IssueDate || !cert.CertificateLink) {
+                    throw new ErrorHandler("Please fill all required certification fields", 400);
+                }
+            }
+
+            const certificationData = Certification.map(c => ({
+                CandidateId,
+                CertificateName: c.CertificateName,
+                IssuingOrganization: c.IssuingOrganization,
+                IssueDate: c.IssueDate,
+                CertificateLink: c.CertificateLink
+            }));
+
+            await CertificationModel.bulkCreate(certificationData, { transaction });
+            certificationCount = Certification.length;
+        }
+
+        if (Project.length > 0) {
+            for (let proj of Project) {
+                if (!proj.ProjectTitle || !proj.Description || !proj.URL) {
+                    throw new ErrorHandler("Please fill all required project fields", 400);
+                }
+            }
+
+            const projectData = Project.map(p => ({
+                CandidateId,
+                ProjectTitle: p.ProjectTitle,
+                Description: p.Description,
+                URL: p.URL
+            }));
+
+            await ProjectModel.bulkCreate(projectData, { transaction });
+            projectCount = Project.length;
+        }
+
+        if (Skill.length > 0) {
+            for (let skill of Skill) {
+                if (!skill) {
+                    throw new ErrorHandler("Please provide a valid skill name", 400);
+                }
+            }
+
+            const skillData = Skill.map(s => ({
+                CandidateId,
+                SkillName: s
+            }));
+
+            await SkillModel.bulkCreate(skillData, { transaction });
+            skillCount = Skill.length;
+        }
+
+        await transaction.commit();
+
+        res.status(201).json({
+            success: true,
+            message: "User Detail Added Successfully",
+            counts: {
+                education: educationCount,
+                experience: experienceCount,
+                certification: certificationCount,
+                project: projectCount,
+                skill: skillCount
+            }
         });
 
-        if (!ExperienceDetail) {
-            return next(new ErrorHandler("Experience Detail not added" , 400));
-        }
-
-        ExperienceCount++;
+    } catch (error) {
+        await transaction.rollback();
+        return next(new ErrorHandler(error.message, 400));
     }
-
-    for (let i = 0; i < Certification.length; i++) {
-        if (!Certification[i].CertificateName || !Certification[i].IssuingOrganization || !Certification[i].IssueDate || !Certification[i].CertificateLink) {
-            return next(new ErrorHandler("Please fill the required certification fields" , 400));
-        }
-
-        const CertificationDetail = await CertificationModel.create({
-            CandidateId,
-            CertificateName: Certification[i].CertificateName,
-            IssuingOrganization: Certification[i].IssuingOrganization,
-            IssueDate: Certification[i].IssueDate,
-            CertificateLink: Certification[i].CertificateLink
-        });
-
-        if (!CertificationDetail) {
-            return next(new ErrorHandler("Certification Detail not added" , 400));
-        }
-
-        CertificationCount++;
-    }
-
-    for (let i = 0; i < Project.length; i++) {
-        if (!Project[i].ProjectTitle || !Project[i].Description || !Project[i].URL) {
-            return next(new ErrorHandler("Please fill the required project fields" , 400));
-        }
-
-        const ProjectDetail = await ProjectModel.create({
-            CandidateId,
-            ProjectTitle: Project[i].ProjectTitle,
-            Description: Project[i].Description,
-            URL: Project[i].URL
-        });
-
-        if (!ProjectDetail) {
-            return next(new ErrorHandler("Project Detail not added" , 400));
-        }
-
-        ProjectCount++;
-    }
-
-    for (let i = 0; i < Skill.length; i++) {
-        if (!Skill[i]) {
-            return next(new ErrorHandler("Please fill the required skill fields" , 400));
-        }
-
-        const SkillDetail = await SkillModel.create({
-            CandidateId,
-            SkillName: Skill[i]
-        });
-
-        if (!SkillDetail) {
-            return next(new ErrorHandler("Skill Detail not added" , 400));
-        }
-
-        SkillCount++;
-    }
-
-    res.status(201).json({
-        success: true,
-        message: "User Detail Added Successfully",
-        EducationCount,
-        ExperienceCount,
-        CertificationCount,
-        ProjectCount,
-        SkillCount
-    });
 });
 
 exports.RetrieveUserDetail = catchAsyncError(async (req , res , next) => {
