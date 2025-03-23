@@ -93,7 +93,6 @@ exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
     let SkillCount = 0;
 
     for (let i = 0; i < Education.length; i++) {
-        console.log(Education[i]);
         if (!Education[i].DegreeTitle || !Education[i].Field || !Education[i].Institution || !Education[i].CompletionYear || !Education[i].Score) {
             return next(new ErrorHandler("Please fill the required education fields" , 400));
         }
@@ -115,8 +114,7 @@ exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
     }
 
     for (let i = 0; i < Experience.length; i++) {
-        console.log(Experience[i]);
-        if (!Experience[i].JobTitle || !Experience[i].Company || !Experience[i].StartDate || !Experience[i].EndDate || !Experience[i].Description) {
+        if (!Experience[i].JobTitle || !Experience[i].Company || !Experience[i].StartDate || !Experience[i].Description) {
             return next(new ErrorHandler("Please fill the required experience fields" , 400));
         }
 
@@ -125,7 +123,7 @@ exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
             JobTitle: Experience[i].JobTitle,
             Company: Experience[i].Company,
             StartDate: Experience[i].StartDate,
-            EndDate: Experience[i].EndDate,
+            EndDate: Experience[i].EndDate || null,
             Description: Experience[i].Description
         });
 
@@ -137,7 +135,6 @@ exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
     }
 
     for (let i = 0; i < Certification.length; i++) {
-        console.log(Certification[i]);
         if (!Certification[i].CertificateName || !Certification[i].IssuingOrganization || !Certification[i].IssueDate || !Certification[i].CertificateLink) {
             return next(new ErrorHandler("Please fill the required certification fields" , 400));
         }
@@ -158,7 +155,6 @@ exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
     }
 
     for (let i = 0; i < Project.length; i++) {
-        console.log(Project[i]);
         if (!Project[i].ProjectTitle || !Project[i].Description || !Project[i].URL) {
             return next(new ErrorHandler("Please fill the required project fields" , 400));
         }
@@ -178,7 +174,6 @@ exports.AddUserDetail = catchAsyncError(async (req , res , next) => {
     }
 
     for (let i = 0; i < Skill.length; i++) {
-        console.log(Skill[i]);
         if (!Skill[i]) {
             return next(new ErrorHandler("Please fill the required skill fields" , 400));
         }

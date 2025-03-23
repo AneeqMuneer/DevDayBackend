@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../../Data/db.js');
+const { sequelize } = require('../../Data/db');
 
 const DEGREE_CHOICES = [
     'Non-Matriculation', 'Matriculation/O-Level', 'Intermediate/A-Level',
