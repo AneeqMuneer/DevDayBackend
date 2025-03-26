@@ -194,7 +194,7 @@ exports.RegisterTeam = catchAsyncError(async (req, res, next) => {
 
     // Only add BA_Code to the team data if it exists
     if (BA_Code) {
-        teamData.BA_Code = BA_Code;
+        teamData.BA_Code = BA_Code.replace(/\s/g, '').toUpperCase();
     }
 
     const team = await TeamModel.create(teamData);
