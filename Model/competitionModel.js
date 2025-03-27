@@ -45,6 +45,11 @@ const Competition = sequelize.define('Competition', {
     Rulebook: {
         type: DataTypes.STRING,
         allowNull: true,
+    },
+    is_filled: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
     }
 }, {
     tableName: 'Competitions',
