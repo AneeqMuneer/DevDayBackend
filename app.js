@@ -2,7 +2,6 @@ const express = require("express");
 const app = express();
 const middleware = require("./Middleware/error");
 const cors = require("cors");
-const rateLimit = require("express-rate-limit");
 
 // Configure CORS
 app.use(cors({ 
@@ -20,14 +19,8 @@ app.use(express.urlencoded({
     limit: '50mb'
 }));
 
-// Apply rate limiting
-const limiter = rateLimit({
-    windowMs: 5 * 60 * 1000,
-    max: 5,
-    message: "Too many requests from this IP, please try again after 15 minutes."
-});
-
-app.use(limiter);
+// Remove the global multer middleware as it conflicts with route-specific multer
+// app.use(upload.any());
 
 const ambassadorRoutes = require("./Routes/ambassadorRoutes");
 const teamRoutes = require("./Routes/teamRoutes");
