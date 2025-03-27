@@ -2,6 +2,17 @@ const express = require("express");
 const app = express();
 const middleware = require("./Middleware/error");
 const cors = require("cors");
+const rateLimit = require('express-rate-limit');
+
+// Configure rate limiter for team registration
+const teamRegistrationLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 3, // 3 requests per window
+    message: {
+        success: false,
+        message: "Too many registration attempts. Please try again after 15 minutes."
+    }
+});
 
 // Configure CORS
 app.use(cors({ 
@@ -30,7 +41,7 @@ const prRoutes = require("./Routes/prRoutes.js");
 const joRoutes = require("./Routes/joRoutes.js");
 
 app.use("/BrandAmbassador", ambassadorRoutes);
-app.use("/Team", teamRoutes);
+app.use("/Team", teamRegistrationLimiter, teamRoutes);
 app.use("/Project", projectRoutes);
 app.use("/Competition", competitionRoutes);
 app.use("/PR", prRoutes);
