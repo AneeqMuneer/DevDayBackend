@@ -3,6 +3,7 @@ const catchAsyncError = require("../Middleware/asyncError");
 const { Op, Sequelize } = require("sequelize");
 const { sequelize } = require("../Data/db");
 const TokenCreation = require("../Utils/tokenCreation.js");
+const bcrypt = require("bcrypt");
 
 const CandidateModel = require("../Model/JobOrbitModels/JOCandidateModel.js");
 const EducationModel = require("../Model/JobOrbitModels/JOEducationModel.js")
@@ -11,15 +12,15 @@ const CertificationModel = require("../Model/JobOrbitModels/JOCeritificationMode
 const ProjectModel = require("../Model/JobOrbitModels/JOProjectModel.js");
 const SkillModel = require("../Model/JobOrbitModels/JOSkillModel.js");
 
-exports.CandidateSignup = catchAsyncError(async (req , res , next) => {
-    const { FirstName , LastName , Gender , Email , Phone , Password } = req.body;
+exports.CandidateSignup = catchAsyncError(async (req, res, next) => {
+    const { FirstName, LastName, Gender, Email, Phone, Password } = req.body;
 
     if (!FirstName || !LastName || !Gender || !Email || !Phone || !Password) {
-        return next(new ErrorHandler("Please fill the required fields" , 400));
+        return next(new ErrorHandler("Please fill the required fields", 400));
     }
 
     if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/.test(Password)) {
-        return next(new ErrorHandler("Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)." , 400));
+        return next(new ErrorHandler("Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).", 400));
     }
 
     const Candidate = await CandidateModel.create({
@@ -38,11 +39,11 @@ exports.CandidateSignup = catchAsyncError(async (req , res , next) => {
     });
 });
 
-exports.CandidateLogin = catchAsyncError(async (req , res , next) => {
-    const { Email , Password } = req.body;
+exports.CandidateLogin = catchAsyncError(async (req, res, next) => {
+    const { Email, Password } = req.body;
 
     if (!Email || !Password) {
-        return next(new ErrorHandler("Please enter Email and Password" , 400));
+        return next(new ErrorHandler("Please enter Email and Password", 400));
     }
 
     const Candidate = await CandidateModel.findOne({
@@ -52,7 +53,7 @@ exports.CandidateLogin = catchAsyncError(async (req , res , next) => {
     });
 
     if (!Candidate) {
-        return next(new ErrorHandler("Invalid Email or Password" , 401));
+        return next(new ErrorHandler("Invalid Email or Password", 401));
     }
 
     const isMatch = await Candidate.comparePassword(Password);
@@ -208,7 +209,7 @@ exports.AddUserDetail = catchAsyncError(async (req, res, next) => {
     }
 });
 
-exports.RetrieveUserDetail = catchAsyncError(async (req , res , next) => {
+exports.RetrieveUserDetail = catchAsyncError(async (req, res, next) => {
     const CandidateId = req.user.Candidate.id;
 
     const Candidate = await CandidateModel.findOne({
@@ -218,7 +219,7 @@ exports.RetrieveUserDetail = catchAsyncError(async (req , res , next) => {
     });
 
     if (!Candidate) {
-        return next(new ErrorHandler("Candidate not found" , 404));
+        return next(new ErrorHandler("Candidate not found", 404));
     }
 
     const Education = await EducationModel.findAll({
@@ -271,4 +272,399 @@ exports.RetrieveUserDetail = catchAsyncError(async (req , res , next) => {
             Skill
         }
     });
+});
+
+exports.UpdatePersonalDetail = catchAsyncError(async (req, res, next) => {
+    const { FirstName, LastName, Phone, Gender, Summary, DomainPreference, CVResume } = req.body;
+    const CandidateId = req.user.Candidate.id;
+
+    const Candidate = await CandidateModel.findOne({
+        where: {
+            id: CandidateId
+        }
+    });
+
+    if (!Candidate) {
+        return next(new ErrorHandler("Candidate not found", 404));
+    }
+
+    Candidate.FirstName = FirstName || Candidate.FirstName;
+    Candidate.LastName = LastName || Candidate.LastName;
+    Candidate.Phone = Phone || Candidate.Phone;
+    Candidate.Gender = Gender || Candidate.Gender;
+    Candidate.Summary = Summary || Candidate.Summary;
+    Candidate.DomainPreference = DomainPreference || Candidate.DomainPreference;
+    Candidate.CVResume = CVResume || Candidate.CVResume;
+
+    await Candidate.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Personal details updated successfully",
+        Candidate
+    });
+});
+
+exports.VerifyOldPassword = catchAsyncError(async (req, res, next) => {
+    const { OldPassword } = req.body;
+    const CandidateId = req.user.Candidate.id;
+
+    if (!OldPassword) {
+        return next(new ErrorHandler("Please enter the required fields", 400));
+    }
+
+    const Candidate = await CandidateModel.findOne({
+        where: {
+            id: CandidateId
+        }
+    });
+
+    if (!Candidate) {
+        return next(new ErrorHandler("Candidate not found", 404));
+    }
+
+    const isMatch = await Candidate.comparePassword(OldPassword);
+
+    if (!isMatch) {
+        return next(new ErrorHandler("Invalid password", 401));
+    }
+
+    req.user.Candidate = Candidate;
+
+    return next();
+});
+
+exports.UpdatePassword = catchAsyncError(async (req, res, next) => {
+    const { NewPassword, RetypePassword } = req.body;
+    const Candidate = req.user.Candidate;
+
+    if (!NewPassword || !RetypePassword) {
+        return next(new ErrorHandler("Please enter the required fields", 400));
+    }
+
+    if (NewPassword !== RetypePassword) {
+        return next(new ErrorHandler("New password and retyped password do not match", 400));
+    }
+
+    const hashedPassword = await bcrypt.hash(NewPassword, 10);
+
+    await Candidate.update({
+        Password: hashedPassword
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Password updated successfully"
+    });
+});
+
+exports.UpdateEducationDetail = catchAsyncError(async (req, res, next) => {
+    const { Educations } = req.body;
+    const CandidateId = req.user.Candidate.id;
+
+    const transaction = await sequelize.transaction();
+
+    try {
+        let EduIds = Educations.map(e => e.id).filter(id => id !== undefined);
+
+        await EducationModel.destroy({
+            where: {
+                CandidateId,
+                id: {
+                    [Op.notIn]: EduIds
+                }
+            },
+            transaction
+        });
+
+        for (let edu of Educations) {
+            if (!edu.DegreeTitle || !edu.Field || !edu.Institution || !edu.CompletionYear || !edu.Score) {
+                throw new ErrorHandler("Please fill all required education fields", 400);
+            }
+
+            if (edu.id) {
+                await EducationModel.update({
+                    DegreeTitle: edu.DegreeTitle,
+                    Field: edu.Field,
+                    Institution: edu.Institution,
+                    CompletionYear: edu.CompletionYear,
+                    Score: edu.Score
+                }, {
+                    where: {
+                        id: edu.id,
+                        CandidateId
+                    },
+                    transaction
+                });
+            } else {
+                await EducationModel.create({
+                    CandidateId,
+                    DegreeTitle: edu.DegreeTitle,
+                    Field: edu.Field,
+                    Institution: edu.Institution,
+                    CompletionYear: edu.CompletionYear,
+                    Score: edu.Score
+                }, {
+                    transaction
+                });
+            }
+        }
+
+        await transaction.commit();
+
+        res.status(200).json({
+            success: true,
+            message: "Education details updated successfully",
+            Education: await EducationModel.findAll({ where: { CandidateId } })
+        });
+    } catch (error) {
+        await transaction.rollback();
+        return next(new ErrorHandler(error.message, 400));
+    }
+});
+
+exports.UpdateExperienceDetail = catchAsyncError(async (req, res, next) => {
+    const { Experiences } = req.body;
+    const CandidateId = req.user.Candidate.id;
+
+    const transaction = await sequelize.transaction();
+
+    try {
+        let ExpIds = Experiences.map(e => e.id).filter(id => id !== undefined);
+
+        await ExperienceModel.destroy({
+            where: {
+                CandidateId,
+                id: {
+                    [Op.notIn]: ExpIds
+                }
+            },
+            transaction
+        });
+
+        for (let exp of Experiences) {
+            if (!exp.JobTitle || !exp.Company || !exp.StartDate || !exp.Description) {
+                throw new ErrorHandler("Please fill all required experience fields", 400);
+            }
+
+            if (exp.id) {
+                await ExperienceModel.update({
+                    JobTitle: exp.JobTitle,
+                    Company: exp.Company,
+                    StartDate: exp.StartDate,
+                    EndDate: exp.EndDate || null,
+                    Description: exp.Description
+                }, {
+                    where: {
+                        id: exp.id,
+                        CandidateId
+                    },
+                    transaction
+                });
+            } else {
+                await ExperienceModel.create({
+                    CandidateId,
+                    JobTitle: exp.JobTitle,
+                    Company: exp.Company,
+                    StartDate: exp.StartDate,
+                    EndDate: exp.EndDate || null,
+                    Description: exp.Description
+                }, {
+                    transaction
+                });
+            }
+        }
+
+        await transaction.commit();
+
+        res.status(200).json({
+            success: true,
+            message: "Experience details updated successfully",
+            Experience: await ExperienceModel.findAll({ where: { CandidateId } })
+        });
+    } catch (error) {
+        await transaction.rollback();
+        return next(new ErrorHandler(error.message, 400));
+    }
+});
+
+exports.UpdateCertificationDetail = catchAsyncError(async (req, res, next) => {
+    const { Certifications } = req.body;
+    const CandidateId = req.user.Candidate.id;
+
+    const transaction = await sequelize.transaction();
+
+    try {
+        let CertIds = Certifications.map(c => c.id).filter(id => id !== undefined);
+
+        await CertificationModel.destroy({
+            where: {
+                CandidateId,
+                id: {
+                    [Op.notIn]: CertIds
+                }
+            },
+            transaction
+        });
+
+        for (let cert of Certifications) {
+            if (!cert.CertificateName || !cert.IssuingOrganization || !cert.IssueDate || !cert.CertificateLink) {
+                throw new ErrorHandler("Please fill all required certification fields", 400);
+            }
+
+            if (cert.id) {
+                await CertificationModel.update({
+                    CertificateName: cert.CertificateName,
+                    IssuingOrganization: cert.IssuingOrganization,
+                    IssueDate: cert.IssueDate,
+                    CertificateLink: cert.CertificateLink
+                }, {
+                    where: {
+                        id: cert.id,
+                        CandidateId
+                    },
+                    transaction
+                });
+            } else {
+                await CertificationModel.create({
+                    CandidateId,
+                    CertificateName: cert.CertificateName,
+                    IssuingOrganization: cert.IssuingOrganization,
+                    IssueDate: cert.IssueDate,
+                    CertificateLink: cert.CertificateLink
+                }, {
+                    transaction
+                });
+            }
+        }
+
+        await transaction.commit();
+
+        res.status(200).json({
+            success: true,
+            message: "Certification details updated successfully",
+            Certification: await CertificationModel.findAll({ where: { CandidateId } })
+        });
+    } catch (error) {
+        await transaction.rollback();
+        return next(new ErrorHandler(error.message, 400));
+    }
+});
+
+exports.UpdateProjectDetail = catchAsyncError(async (req, res, next) => {
+    const { Projects } = req.body;
+    const CandidateId = req.user.Candidate.id;
+
+    const transaction = await sequelize.transaction();
+
+    try {
+        let ProjIds = Projects.map(p => p.id).filter(id => id !== undefined);
+
+        await ProjectModel.destroy({
+            where: {
+                CandidateId,
+                id: {
+                    [Op.notIn]: ProjIds
+                }
+            },
+            transaction
+        });
+
+        for (let proj of Projects) {
+            if (!proj.ProjectTitle || !proj.Description || !proj.URL) {
+                throw new ErrorHandler("Please fill all required project fields", 400);
+            }
+
+            if (proj.id) {
+                await ProjectModel.update({
+                    ProjectTitle: proj.ProjectTitle,
+                    Description: proj.Description,
+                    URL: proj.URL
+                }, {
+                    where: {
+                        id: proj.id,
+                        CandidateId
+                    },
+                    transaction
+                });
+            } else {
+                await ProjectModel.create({
+                    CandidateId,
+                    ProjectTitle: proj.ProjectTitle,
+                    Description: proj.Description,
+                    URL: proj.URL
+                }, {
+                    transaction
+                });
+            }
+        }
+
+        await transaction.commit();
+
+        res.status(200).json({
+            success: true,
+            message: "Project details updated successfully",
+            Project: await ProjectModel.findAll({ where: { CandidateId } })
+        });
+    } catch (error) {
+        await transaction.rollback();
+        return next(new ErrorHandler(error.message, 400));
+    }
+});
+
+exports.UpdateSkillDetail = catchAsyncError(async (req, res, next) => {
+    const { Skills } = req.body;
+    const CandidateId = req.user.Candidate.id;
+
+    const transaction = await sequelize.transaction();
+
+    try {
+        let SkillIds = Skills.map(s => s.id).filter(id => id !== undefined);
+
+        await SkillModel.destroy({
+            where: {
+                CandidateId,
+                id: {
+                    [Op.notIn]: SkillIds
+                }
+            },
+            transaction
+        });
+
+        for (let skill of Skills) {
+            if (!skill.SkillName) {
+                throw new ErrorHandler("Please provide a valid skill name", 400);
+            }
+
+            if (skill.id) {
+                await SkillModel.update({
+                    SkillName: skill.SkillName
+                }, {
+                    where: {
+                        id: skill.id,
+                        CandidateId
+                    },
+                    transaction
+                });
+            } else {
+                await SkillModel.create({
+                    CandidateId,
+                    SkillName: skill.SkillName
+                }, {
+                    transaction
+                });
+            }
+        }
+
+        await transaction.commit();
+
+        res.status(200).json({
+            success: true,
+            message: "Skill details updated successfully",
+            Skill: await SkillModel.findAll({ where: { CandidateId } })
+        });
+    } catch (error) {
+        await transaction.rollback();
+        return next(new ErrorHandler(error.message, 400));
+    }
 });
