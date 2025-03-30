@@ -15,6 +15,8 @@ const teamRegistrationLimiter = rateLimit({
 });
 
 // Configure CORS
+app.options('*', cors());  // Enable preflight response for all routes
+
 app.use(cors({ 
     origin: "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
