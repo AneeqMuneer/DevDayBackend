@@ -16,14 +16,6 @@ const Project = sequelize.define('Project', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    Description: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    Supervisor: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
     Institution_Name: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -59,7 +51,15 @@ const Project = sequelize.define('Project', {
     Project_Report: {
         type: DataTypes.STRING,
         allowNull: false,
-    }
+    },
+    Payment_Photo: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    Payment_Verification_Status: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
 }, {
     tableName: 'Projects',
     timestamps: true,

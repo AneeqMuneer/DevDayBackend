@@ -10,20 +10,39 @@ const handleMulterErrors = (req, res, next) => {
     console.log("Request headers:", req.headers);
     console.log("Content-Type:", req.headers['content-type']);
     
-    // Use multer's single file upload for project report
-    upload.single('Project_Report')(req, res, (err) => {
+    // Use multer's fields method to accept both Project_Report and Payment_Photo
+    upload.fields([
+        { name: 'Project_Report', maxCount: 1 },
+        { name: 'Payment_Photo', maxCount: 1 }
+    ])(req, res, (err) => {
         console.log("Multer processing complete for project registration");
         if (err) {
             console.log("Multer error in project registration:", err);
             return next(new ErrorHandler(err.message || "Error processing form data", 400));
         }
         
-        console.log("File processed successfully for project registration:", req.file ? "File exists" : "No file");
+        console.log("Files processed successfully for project registration:", 
+            req.files ? `Files received: ${Object.keys(req.files).join(', ')}` : "No files");
         
-        // Convert req.file to req.files array format expected by the controller
-        if (req.file) {
-            req.files = [req.file];
-            req.files[0].fieldname = 'Project_Report'; // Ensure fieldname is set correctly
+        // Convert req.files object to array format expected by the controller
+        if (req.files) {
+            const filesArray = [];
+            
+            // Add Project_Report if exists
+            if (req.files['Project_Report'] && req.files['Project_Report'].length > 0) {
+                const reportFile = req.files['Project_Report'][0];
+                reportFile.fieldname = 'Project_Report'; // Ensure fieldname is set correctly
+                filesArray.push(reportFile);
+            }
+            
+            // Add Payment_Photo if exists
+            if (req.files['Payment_Photo'] && req.files['Payment_Photo'].length > 0) {
+                const paymentFile = req.files['Payment_Photo'][0];
+                paymentFile.fieldname = 'Payment_Photo'; // Ensure fieldname is set correctly
+                filesArray.push(paymentFile);
+            }
+            
+            req.files = filesArray;
         }
         
         next();

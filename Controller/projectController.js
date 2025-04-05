@@ -2,6 +2,7 @@ const ErrorHandler = require("../Utils/errorHandler.js");
 const catchAsyncError = require("../Middleware/asyncError.js");
 const { Op, Sequelize } = require("sequelize");
 const { BlobServiceClient, StorageSharedKeyCredential } = require('@azure/storage-blob');
+const cloudinary = require("../config/cloudinary.js");
 const dotenv = require('dotenv');
 
 dotenv.config({ path: "../config/config.env" });
@@ -15,14 +16,12 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
     console.log("Request body:", JSON.stringify(req.body));
     console.log("Request files:", req.files ? `Files exist: ${req.files.length}` : "No files");
 
-    const { Project_Name, Description, Supervisor, Institution_Name, L_Email, L_Contact, L_CNIC, BA_Code } = req.body;
+    const { Project_Name, Institution_Name, L_Email, L_Contact, L_CNIC, BA_Code } = req.body;
     let { Team_Name, L_Name, Members } = req.body;
 
     console.log("Extracted fields:", {
         Team_Name,
         Project_Name,
-        Description,
-        Supervisor,
         Institution_Name,
         L_Name,
         L_Contact,
@@ -116,26 +115,23 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
     }
 
     let reportUrl = null;
+    let paymentPhotoUrl = null;
+    
     if (req.files && req.files.length > 0) {
-        console.log("Processing project report upload");
+        console.log("Processing file uploads");
         console.log("Files available:", req.files.map(f => ({ fieldname: f.fieldname, originalname: f.originalname })));
 
-        if (req.files.length > 1) {
-            console.log("Too many files submitted");
-            return next(new ErrorHandler("Only one project report is allowed.", 400));
-        }
+        // Process Project Report
+        const projectReport = req.files.find(file => file.fieldname === 'Project_Report');
+        if (projectReport) {
+            console.log("Project report found:", {
+                originalname: projectReport.originalname,
+                mimetype: projectReport.mimetype,
+                size: projectReport.size,
+                hasBuffer: !!projectReport.buffer
+            });
 
-        try {
-            const projectReport = req.files.find(file => file.fieldname === 'Project_Report');
-
-            if (projectReport) {
-                console.log("Project report found:", {
-                    originalname: projectReport.originalname,
-                    mimetype: projectReport.mimetype,
-                    size: projectReport.size,
-                    hasBuffer: !!projectReport.buffer
-                });
-
+            try {
                 const storageAccountName = process.env.AZURE_ACCOUNT_NAME;
                 const storageAccountKey = process.env.AZURE_ACCOUNT_KEY;
                 const containerName = process.env.AZURE_CONTAINER_NAME;
@@ -183,12 +179,60 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
 
                 reportUrl = blockBlobClient.url;
                 console.log("Report URL:", reportUrl);
-            } else {
-                console.log("Project report not found in files");
+            } catch (err) {
+                console.error("Azure Blob Storage upload error:", err);
+                return next(new ErrorHandler("Error uploading project report to Azure Blob Storage", 500));
             }
-        } catch (err) {
-            console.error("Azure Blob Storage upload error:", err);
-            return next(new ErrorHandler("Error uploading project report to Azure Blob Storage", 500));
+        } else {
+            console.log("Project report not found in files");
+        }
+
+        // Process Payment Photo using Cloudinary
+        const paymentPhoto = req.files.find(file => file.fieldname === 'Payment_Photo');
+        if (paymentPhoto) {
+            console.log("Payment photo found:", {
+                originalname: paymentPhoto.originalname,
+                mimetype: paymentPhoto.mimetype,
+                size: paymentPhoto.size,
+                hasBuffer: !!paymentPhoto.buffer
+            });
+
+            try {
+                const uploadResult = await new Promise((resolve, reject) => {
+                    if (!paymentPhoto.buffer) {
+                        console.log("No buffer in payment photo file");
+                        return reject(new ErrorHandler('Invalid file data', 400));
+                    }
+
+                    console.log("Creating upload stream for payment photo");
+                    const stream = cloudinary.uploader.upload_stream(
+                        { resource_type: 'image', folder: 'projects' },
+                        (error, result) => {
+                            if (error) {
+                                console.log("Cloudinary upload error for payment photo:", error);
+                                reject(new ErrorHandler('Error uploading payment image to Cloudinary', 500));
+                            } else {
+                                console.log("Cloudinary upload success for payment photo");
+                                resolve(result.secure_url);
+                            }
+                        }
+                    );
+
+                    console.log("Writing payment photo to stream");
+                    stream.write(paymentPhoto.buffer);
+                    console.log("Ending payment photo stream");
+                    stream.end();
+                });
+
+                console.log("Payment photo upload complete, URL:", uploadResult);
+                paymentPhotoUrl = uploadResult;
+
+            } catch (err) {
+                console.log("Error in payment photo upload:", err);
+                return next(err);
+            }
+        } else {
+            console.log("Payment photo not found in files");
         }
     } else {
         console.log("No files found in request");
@@ -197,6 +241,11 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
     if (reportUrl === null) {
         console.log("Report URL is null");
         return next(new ErrorHandler("Project report is required.", 400));
+    }
+
+    if (paymentPhotoUrl === null) {
+        console.log("Payment photo URL is null");
+        return next(new ErrorHandler("Payment photo is required.", 400));
     }
 
     Team_Name = Team_Name.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
@@ -208,8 +257,6 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
     const Project = await ProjectModel.create({
         Team_Name,
         Project_Name,
-        Description,
-        Supervisor,
         Institution_Name,
         L_Name,
         L_Contact,
@@ -217,7 +264,8 @@ exports.RegisterProject = catchAsyncError(async (req, res, next) => {
         L_CNIC,
         Members,
         BA_Code,
-        Project_Report: reportUrl
+        Project_Report: reportUrl,
+        Payment_Photo: paymentPhotoUrl
     });
 
     SendProjectRegisterMail(Team_Name, L_Email);
