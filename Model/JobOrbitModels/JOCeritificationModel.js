@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
-const { joSequelize } = require('../../Data/db');
+const { sequelize } = require('../../Data/db');
 
-const JOCertifications = joSequelize.define('JOCertifications', {
+const JOCertifications = sequelize.define('JOCertifications', {
     id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,

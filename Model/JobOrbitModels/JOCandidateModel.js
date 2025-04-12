@@ -1,10 +1,10 @@
 const { DataTypes } = require('sequelize');
-const { joSequelize } = require('../../Data/db');
+const { sequelize } = require('../../Data/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-const JOCandidate = joSequelize.define('JOCandidate', {
+const JOCandidate = sequelize.define('JOCandidate', {
     id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
