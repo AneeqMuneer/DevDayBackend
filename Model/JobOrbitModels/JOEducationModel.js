@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../../Data/db');
+const { joSequelize } = require('../../Data/db');
 
 const DEGREE_CHOICES = [
     'Non-Matriculation', 'Matriculation/O-Level', 'Intermediate/A-Level',
@@ -9,7 +9,7 @@ const DEGREE_CHOICES = [
     'Mphil', 'PHD', 'Diploma', 'Certificate', 'Short Course'
 ];
 
-const JOEducation = sequelize.define('JOEducation', {
+const JOEducation = joSequelize.define('JOEducation', {
     id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
