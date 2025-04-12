@@ -8,7 +8,7 @@ const bcrypt = require("bcrypt");
 const AmbassadorModel = require("../Model/ambassadorModel");
 const TeamModel = require("../Model/teamModel");
 
-const { SendRegistrationEmail , CreateCode , GenerateRandomPassword , SendApprovePasswordEmail } = require("../Utils/ambassadorUtils");
+const { SendRegistrationEmail , CreateCode , GenerateRandomPassword , SendApprovePasswordEmail , SendApproveEmail } = require("../Utils/ambassadorUtils");
 
 exports.Login = catchAsyncError(async (req, res, next) => {
     const { Email, Password } = req.body;
@@ -44,9 +44,9 @@ exports.Login = catchAsyncError(async (req, res, next) => {
 });
 
 exports.SignUp = catchAsyncError(async (req, res, next) => {
-    const { Name, Contact, Email, CNIC, Institution, Instagram_Handle } = req.body;
+    const { Name, Contact, Email, CNIC, Institution, Instagram_Handle, Password } = req.body;
 
-    if (!Name || !Email || !Contact || !CNIC || !Institution) {
+    if (!Name || !Email || !Contact || !CNIC || !Institution || !Password) {
         return next(new ErrorHandler("Please fill the remaining fields.", 400));
     }
 
@@ -95,7 +95,8 @@ exports.SignUp = catchAsyncError(async (req, res, next) => {
             CNIC,
             Institution,
             Instagram_Handle,
-            ProfilePhoto: profilePhotoUrl
+            ProfilePhoto: profilePhotoUrl,
+            Password
         });
 
         await SendRegistrationEmail(ambassador.Email, ambassador.Name);
@@ -343,13 +344,17 @@ exports.ApproveBAs = catchAsyncError(async (req, res, next) => {
         if (!ambassador.Approval) {
             ambassador.Approval = true;
     
-            const randomPassword = await GenerateRandomPassword();
-    
-            ambassador.Password = await bcrypt.hash(randomPassword, 10);
-    
-            await ambassador.save();
-    
-            await SendApprovePasswordEmail(ambassador.Email, ambassador.Name, ambassador.Code , randomPassword);
+            // Only generate and set a random password if one doesn't exist
+            if (!ambassador.Password) {
+                const randomPassword = await GenerateRandomPassword();
+                ambassador.Password = await bcrypt.hash(randomPassword, 10);
+                await ambassador.save();
+                await SendApprovePasswordEmail(ambassador.Email, ambassador.Name, ambassador.Code, randomPassword);
+            } else {
+                await ambassador.save();
+                // Notify the ambassador about approval without sending a password
+                await SendApproveEmail(ambassador.Email, ambassador.Name, ambassador.Code);
+            }
         }
     }
 

@@ -64,6 +64,8 @@ exports.SendRegistrationEmail = async (email, name) => {
           <br><br>
           We are pleased to inform you that your application has been successfully received. Our team will review your application carefully, and we will notify you further regarding the status of your application.
           <br><br>
+          Once your application is approved, you will be able to log in to the Brand Ambassador portal using your email and the password you provided during registration.
+          <br><br>
           Thank you again for your enthusiasm and support for Developers Day 2025. We look forward to being in touch soon.
           <br><br>
           Best regards,<br>
@@ -150,7 +152,81 @@ exports.SendApprovePasswordEmail = async (email, name, baCode, password) => {
 
   <p>If you encounter any issues or need assistance, don't hesitate to reach out to us.</p>
 
-  <p>Thank you for your efforts in making this event a success, and we’re looking forward to seeing the impact you’ll make!</p>
+  <p>Thank you for your efforts in making this event a success, and we're looking forward to seeing the impact you'll make!</p>
+
+  <p>Best regards,<br>
+  <strong>Team Developers' Day 2025</strong></p>
+
+  <hr style="border: 1px solid #ddd; margin: 20px 0;">
+
+  <p style="text-align: center;"><strong>Follow us for further updates:</strong></p>
+  <p style="text-align: center;">
+    <a href="https://www.linkedin.com/company/developersday" target="_blank" style="margin: 0 10px;"><img src="https://img.icons8.com/color/48/linkedin.png" alt="LinkedIn"></a>
+    <a href="https://www.facebook.com/developersday" target="_blank" style="margin: 0 10px;"><img src="https://img.icons8.com/color/48/facebook-new.png" alt="Facebook"></a>
+    <a href="https://www.instagram.com/developersday" target="_blank" style="margin: 0 10px;"><img src="https://img.icons8.com/color/48/instagram-new--v1.png" alt="Instagram"></a>
+  </p>
+
+</div>
+
+</body>
+</html>`
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      console.log('Email sent: ' + info.response);
+      console.log(`Mail sent to ${name} successfully.`);
+
+      return true;
+  } catch (error) {
+      console.log('Error sending email:', error);
+      throw error;
+  }
+};
+
+exports.SendApproveEmail = async (email, name, baCode) => {
+  try {
+      const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          host: 'smtp.gmail.com',
+          port: 465,
+          secure: true,
+          auth: {
+              user: process.env.EMAIL,
+              pass: process.env.EMAIL_PASSWORD,
+          },
+      });
+
+      const mailOptions = {
+          from: process.env.EMAIL,
+          to: email,
+          subject: 'Brand Ambassador Portal Details',
+          html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand Ambassador Portal Details</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+
+<div style="max-width: 600px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
+  
+  <h2 style="text-align: center; color: #a02723;">Brand Ambassador Portal Details</h2>
+  
+  <p>Dear <strong>${name}</strong>,</p>
+
+  <p>We are excited to have you on board as a brand ambassador for our upcoming event!</p>
+
+  <p>Your application has been approved! You can now access your brand ambassador portal to monitor your progress and track the teams you've helped register.</p>
+
+  <p><strong>Your Ambassador Code:</strong> <span style="color: #a02723;">${baCode}</span></p>
+
+  <p>To access the portal, simply visit <a href="https://ba.devday25.com" target="_blank" style="color: #a02723; font-weight: bold;">ba.devday25.com</a> and log in with your email and the password you provided during registration.</p>
+
+  <p>If you encounter any issues or need assistance, don't hesitate to reach out to us.</p>
+
+  <p>Thank you for your efforts in making this event a success, and we're looking forward to seeing the impact you'll make!</p>
 
   <p>Best regards,<br>
   <strong>Team Developers' Day 2025</strong></p>
