@@ -1,7 +1,7 @@
 const ErrorHandler = require("../Utils/errorHandler");
 const catchAsyncError = require("../Middleware/asyncError");
 const { Op, Sequelize } = require("sequelize");
-const { sequelize } = require("../Data/db");
+const { joSequelize } = require("../Data/db");
 const TokenCreation = require("../Utils/tokenCreation.js");
 const bcrypt = require("bcrypt");
 
@@ -73,7 +73,7 @@ exports.AddUserDetail = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Please fill the required candidate fields", 400));
     }
 
-    const transaction = await sequelize.transaction();
+    const transaction = await joSequelize.transaction();
 
     try {
         const Candidate = await CandidateModel.findOne({
@@ -362,7 +362,7 @@ exports.UpdateEducationDetail = catchAsyncError(async (req, res, next) => {
     const { Educations } = req.body;
     const CandidateId = req.user.Candidate.id;
 
-    const transaction = await sequelize.transaction();
+    const transaction = await joSequelize.transaction();
 
     try {
         let EduIds = Educations.map(e => e.id).filter(id => id !== undefined);
@@ -427,7 +427,7 @@ exports.UpdateExperienceDetail = catchAsyncError(async (req, res, next) => {
     const { Experiences } = req.body;
     const CandidateId = req.user.Candidate.id;
 
-    const transaction = await sequelize.transaction();
+    const transaction = await joSequelize.transaction();
 
     try {
         let ExpIds = Experiences.map(e => e.id).filter(id => id !== undefined);
@@ -492,7 +492,7 @@ exports.UpdateCertificationDetail = catchAsyncError(async (req, res, next) => {
     const { Certifications } = req.body;
     const CandidateId = req.user.Candidate.id;
 
-    const transaction = await sequelize.transaction();
+    const transaction = await joSequelize.transaction();
 
     try {
         let CertIds = Certifications.map(c => c.id).filter(id => id !== undefined);
@@ -555,7 +555,7 @@ exports.UpdateProjectDetail = catchAsyncError(async (req, res, next) => {
     const { Projects } = req.body;
     const CandidateId = req.user.Candidate.id;
 
-    const transaction = await sequelize.transaction();
+    const transaction = await joSequelize.transaction();
 
     try {
         let ProjIds = Projects.map(p => p.id).filter(id => id !== undefined);
@@ -616,7 +616,7 @@ exports.UpdateSkillDetail = catchAsyncError(async (req, res, next) => {
     const { Skills } = req.body;
     const CandidateId = req.user.Candidate.id;
 
-    const transaction = await sequelize.transaction();
+    const transaction = await joSequelize.transaction();
 
     try {
         let SkillIds = Skills.map(s => s.id).filter(id => id !== undefined);
