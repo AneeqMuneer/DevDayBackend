@@ -1,5 +1,5 @@
 const express = require("express");
-const { CandidateLogin , CandidateSignup , RetrieveUserDetail , AddUserDetail , UpdatePersonalDetail , UpdateCertificationDetail , UpdateEducationDetail , UpdateExperienceDetail , UpdateProjectDetail , UpdateSkillDetail , VerifyOldPassword , UpdatePassword } = require("../Controller/joController");
+const { CandidateLogin , CandidateSignup , RetrieveUserDetail , AddUserDetail , UpdatePersonalDetail , UpdateCertificationDetail , UpdateEducationDetail , UpdateExperienceDetail , UpdateProjectDetail , UpdateSkillDetail , VerifyOldPassword , UpdatePassword , addJob , getAllJobs } = require("../Controller/joController");
 const { VerifyCandidate } = require("../Middleware/candidateAuth");
 const router = express.Router();
 
@@ -14,5 +14,9 @@ router.route("/UpdateExperienceDetail").put(VerifyCandidate , UpdateExperienceDe
 router.route("/UpdateCertificationDetail").put(VerifyCandidate , UpdateCertificationDetail);
 router.route("/UpdateProjectDetail").put(VerifyCandidate , UpdateProjectDetail);
 router.route("/UpdateSkillDetail").put(VerifyCandidate , UpdateSkillDetail);
+
+// Job routes
+router.route("/AddJob").post(addJob).get(getAllJobs);
+router.route("/RetrieveJobs").get(getAllJobs);
 
 module.exports = router;

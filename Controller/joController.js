@@ -11,6 +11,7 @@ const ExperienceModel = require("../Model/JobOrbitModels/JOExperienceModel.js");
 const CertificationModel = require("../Model/JobOrbitModels/JOCeritificationModel.js");
 const ProjectModel = require("../Model/JobOrbitModels/JOProjectModel.js");
 const SkillModel = require("../Model/JobOrbitModels/JOSkillModel.js");
+const JOJobsModel = require("../Model/JobOrbitModels/JOJobsModel.js");
 
 exports.CandidateSignup = catchAsyncError(async (req, res, next) => {
     const { FirstName, LastName, Gender, Email, Phone, Password } = req.body;
@@ -667,4 +668,36 @@ exports.UpdateSkillDetail = catchAsyncError(async (req, res, next) => {
         await transaction.rollback();
         return next(new ErrorHandler(error.message, 400));
     }
+});
+
+// Add a new job
+exports.addJob = catchAsyncError(async (req, res, next) => {
+    const { CompanyName, CompanyOverview, Jobs } = req.body;
+
+    if (!CompanyName || !Jobs || !Array.isArray(Jobs)) {
+        return next(new ErrorHandler("Please provide required fields (CompanyName and Jobs array)", 400));
+    }
+
+    const jobListing = await JOJobsModel.create({
+        CompanyName,
+        CompanyOverview,
+        Jobs
+    });
+
+    res.status(201).json({
+        success: true,
+        message: "Job listing created successfully",
+        jobListing
+    });
+});
+
+// Get all jobs
+exports.getAllJobs = catchAsyncError(async (req, res, next) => {
+    const jobListings = await JOJobsModel.findAll();
+
+    res.status(200).json({
+        success: true,
+        count: jobListings.length,
+        jobListings
+    });
 });
