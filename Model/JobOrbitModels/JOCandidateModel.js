@@ -113,7 +113,14 @@ JOCandidate.prototype.getAuthCode = function () {
 }
 
 JOCandidate.prototype.IsAuthCodeValid = function () {
-    return this.AuthCodeExpire > Date.now();
+    if (this.AuthCodeExpire > Date.now()) {
+        return true;
+    } else {
+        this.AuthCode = null;
+        this.AuthCodeExpire = null;
+        this.save();
+        return false;
+    }
 }
 
 module.exports = JOCandidate;

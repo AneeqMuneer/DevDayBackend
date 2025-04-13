@@ -715,10 +715,6 @@ exports.ForgotPassword = catchAsyncError(async (req , res , next) => {
         return next(new ErrorHandler("Candidate with this email doesn't exist", 404));
     }
 
-    if (candidate.AuthCode !== null) {
-        return next(new ErrorHandler("Auth code already sent", 400));
-    }
-
     const authcode = candidate.getAuthCode();
     await candidate.save({ validate: false });
 
@@ -748,9 +744,6 @@ exports.VerifyAuthCode = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("This email doesn't exist", 404));
     }
 
-    console.log(candidate.AuthCodeExopire);
-    console.log(candidate.AuthCode);
-
     if (!candidate.IsAuthCodeValid()) {
         return next(new ErrorHandler("Auth code has expired", 400));
     }
@@ -758,10 +751,6 @@ exports.VerifyAuthCode = catchAsyncError(async (req, res, next) => {
     if (candidate.AuthCode !== AuthCode) {
         return next(new ErrorHandler("Invalid authentication code", 401));
     }
-
-    candidate.AuthCode = null;
-    candidate.AuthCodeExpire = null;
-    await candidate.save({ validate: false });
 
     res.status(200).json({
         success: true,
