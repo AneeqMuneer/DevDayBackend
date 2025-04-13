@@ -13,6 +13,8 @@ const ProjectModel = require("../Model/JobOrbitModels/JOProjectModel.js");
 const SkillModel = require("../Model/JobOrbitModels/JOSkillModel.js");
 const JOJobsModel = require("../Model/JobOrbitModels/JOJobsModel.js");
 
+const { SendForgetPasswordMail } = require("../Utils/joUtils.js");
+
 exports.CandidateSignup = catchAsyncError(async (req, res, next) => {
     const { FirstName, LastName, Gender, Email, Phone, Password } = req.body;
 
@@ -670,8 +672,7 @@ exports.UpdateSkillDetail = catchAsyncError(async (req, res, next) => {
     }
 });
 
-// Add a new job
-exports.addJob = catchAsyncError(async (req, res, next) => {
+exports.AddJob = catchAsyncError(async (req, res, next) => {
     const { CompanyName, CompanyOverview, Jobs } = req.body;
 
     if (!CompanyName || !Jobs || !Array.isArray(Jobs)) {
@@ -691,13 +692,112 @@ exports.addJob = catchAsyncError(async (req, res, next) => {
     });
 });
 
-// Get all jobs
-exports.getAllJobs = catchAsyncError(async (req, res, next) => {
+exports.GetAllJobs = catchAsyncError(async (req, res, next) => {
     const jobListings = await JOJobsModel.findAll();
 
     res.status(200).json({
         success: true,
         count: jobListings.length,
         jobListings
+    });
+});
+
+exports.ForgotPassword = catchAsyncError(async (req , res , next) => {
+    const { Email } = req.body;
+
+    const candidate = await CandidateModel.findOne({
+        where: {
+            Email: Email
+        }
+    });
+
+    if (!candidate) {
+        return next(new ErrorHandler("Candidate with this email doesn't exist", 404));
+    }
+
+    if (candidate.AuthCode !== null) {
+        return next(new ErrorHandler("Auth code already sent", 400));
+    }
+
+    const authcode = candidate.getAuthCode();
+    await candidate.save({ validate: false });
+
+    await SendForgetPasswordMail(Email, authcode);
+
+    res.status(200).json({
+        success: true,
+        message: `Auth code sent to ${candidate.Email}`,
+        Email
+    });
+});
+
+exports.VerifyAuthCode = catchAsyncError(async (req, res, next) => {
+    const { AuthCode , Email } = req.body;
+
+    if (!AuthCode || !Email) {
+        return next(new ErrorHandler("Please enter the required fields", 400));
+    }
+
+    const candidate = await CandidateModel.findOne({
+        where: {
+            Email: Email
+        }
+    });
+
+    if (!candidate) {
+        return next(new ErrorHandler("This email doesn't exist", 404));
+    }
+
+    console.log(candidate.AuthCodeExopire);
+    console.log(candidate.AuthCode);
+
+    if (!candidate.IsAuthCodeValid()) {
+        return next(new ErrorHandler("Auth code has expired", 400));
+    }
+
+    if (candidate.AuthCode !== AuthCode) {
+        return next(new ErrorHandler("Invalid authentication code", 401));
+    }
+
+    candidate.AuthCode = null;
+    candidate.AuthCodeExpire = null;
+    await candidate.save({ validate: false });
+
+    res.status(200).json({
+        success: true,
+        message: "Authentication code verified successfully",
+    });
+});
+
+exports.ResetPassword = catchAsyncError(async (req, res, next) => {
+    const { NewPassword , RetypePassword , Email } = req.body;
+
+    if (!NewPassword || !RetypePassword || !Email) {
+        return next(new ErrorHandler("Please enter the required fields", 400));
+    }
+
+    if (NewPassword !== RetypePassword) {
+        return next(new ErrorHandler("New password and retyped password do not match", 400));
+    }
+
+    const candidate = await CandidateModel.findOne({
+        where: {
+            Email: Email
+        }
+    });
+
+    if (!candidate) {
+        return next(new ErrorHandler("This email doesn't exist", 404));
+    }
+
+    const hashedPassword = await bcrypt.hash(NewPassword, 10);
+
+    await candidate.update({
+        Password: hashedPassword
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Password reset successfully"
     });
 });

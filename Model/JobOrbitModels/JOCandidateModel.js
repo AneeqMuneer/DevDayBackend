@@ -64,6 +64,14 @@ const JOCandidate = joSequelize.define('JOCandidate', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    AuthCode: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    AuthCodeExpire: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
     ProfileCreated: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
@@ -97,5 +105,15 @@ JOCandidate.prototype.getResetPasswordToken = function () {
     this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
     return resetToken;
 };
+
+JOCandidate.prototype.getAuthCode = function () {
+    this.AuthCode = crypto.randomBytes(3).toString("hex").toUpperCase();
+    this.AuthCodeExpire = Date.now() + 15 * 60 * 1000;
+    return this.AuthCode;
+}
+
+JOCandidate.prototype.IsAuthCodeValid = function () {
+    return this.AuthCodeExpire > Date.now();
+}
 
 module.exports = JOCandidate;
