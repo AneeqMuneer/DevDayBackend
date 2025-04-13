@@ -11,6 +11,10 @@ const JOJobs = joSequelize.define('JOJobs', {
         type: DataTypes.STRING(255),
         allowNull: false
     },
+    CompanyLogo: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+    },
     CompanyOverview: {
         type: DataTypes.STRING(255),
         allowNull: true
