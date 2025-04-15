@@ -22,7 +22,7 @@ exports.CandidateSignup = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Please fill the required fields", 400));
     }
 
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(Password)) {
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(Password)) {
         return next(new ErrorHandler("Password must contain at least one uppercase letter, one lowercase letter and one number.", 400));
     }
 
