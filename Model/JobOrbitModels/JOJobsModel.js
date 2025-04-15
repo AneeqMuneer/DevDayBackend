@@ -19,6 +19,10 @@ const JOJobs = joSequelize.define('JOJobs', {
         type: DataTypes.STRING(255),
         allowNull: true
     },
+    Link: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+    },
     Jobs: {
         type: DataTypes.JSON,
         allowNull: false,
